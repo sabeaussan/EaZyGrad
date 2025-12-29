@@ -1,4 +1,0 @@
-# file: /home/beaussant/SimpleGrad/pytensor/grad/computation_graph.py
-# hypothesis_version: 6.140.2
-
-['-----------------', '20', 'Computation graph', 'acc gradient : ', 'circle', 'filled', 'foo', 'gradient : ', 'is leaf : ', 'lightskyblue', 'mediumpurple', 'operation : ', 'rectangle', 'svg', 'tensor result: ']
