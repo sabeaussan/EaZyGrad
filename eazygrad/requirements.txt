@@ -1,0 +1,19 @@
+filelock
+fsspec
+importlib-metadata
+Jinja2
+llvmlite
+MarkupSafe
+mpmath
+networkx
+numba
+numpy==1.24.1
+pillow
+pyFFTW
+# Editable install with no version control (pytensor==0.0.1)
+-e /home/beaussant/PyTensor
+scipy
+sympy
+torch
+typing-extensions
+zipp

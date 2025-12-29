@@ -1,0 +1,4 @@
+# file: /home/beaussant/SimpleGrad/pytensor/utils.py
+# hypothesis_version: 6.140.2
+
+['complex64', 'direct', 'fft', 'float32', 'int32', 'same', 'valid']

@@ -1,0 +1,4 @@
+# file: /home/beaussant/SimpleGrad/pytensor/__init__.py
+# hypothesis_version: 6.140.2
+
+['randn', 'uniform']

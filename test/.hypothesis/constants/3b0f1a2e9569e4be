@@ -1,0 +1,4 @@
+# file: /home/beaussant/SimpleGrad/pytensor/utils.py
+# hypothesis_version: 6.140.2
+
+[0.0, 'Expected a tensor', 'Warmup...', '__main__', 'bhwcij,kcij->bkhw', 'complex64', 'cpu', 'cumtime', 'direct', 'fft', 'float32', 'int32', 'profile_forward.prof', 'same', 'valid']

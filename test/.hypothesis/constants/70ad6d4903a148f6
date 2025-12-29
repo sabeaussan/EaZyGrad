@@ -1,0 +1,4 @@
+# file: /home/beaussant/SimpleGrad/pytensor/grad/operations.py
+# hypothesis_version: 6.140.2
+
+[-0.5, '-', 'Add', 'BatchNorm2d', 'Conv2d', 'Cos', 'Div', 'Exp', 'ExpandDims', 'Log', 'MatMul', 'MaxPool2d', 'Mean', 'Mul', 'Operation', 'Pad', 'Pow', 'RDiv', 'ReLU', 'Reshape', 'Sin', 'Slice', 'Squeeze', 'Sub', 'Sum', 'SwapDims', 'Var', 'complex64', 'float32', 'weight : ']

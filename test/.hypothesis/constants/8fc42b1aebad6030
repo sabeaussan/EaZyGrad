@@ -1,0 +1,4 @@
+# file: /home/beaussant/SimpleGrad/pytensor/function.py
+# hypothesis_version: 6.140.2
+
+[0.5, 'Expected a tensor']
