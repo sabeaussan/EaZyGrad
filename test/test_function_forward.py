@@ -135,6 +135,24 @@ def test_softmax_preserves_shape(array):
     assert result.shape == ez.shape
 
 
+# ------------------ Log softmax ------------------
+
+@given(array=test_utils.array_or_scalar_strategy)
+def test_log_softmax_forward(array):
+    ez = test_utils.make_tensor(array, requires_grad=False)
+    t = torch.tensor(array)
+
+    if t.ndim == 0:
+        dim = 0
+    else:
+        dim = random.randint(0, t.ndim - 1)
+
+    result = eazygrad.log_softmax(ez, dim=dim).numpy()
+    expected = torch.log_softmax(t, dim=dim).numpy()
+
+    np.testing.assert_allclose(result, expected, rtol=1e-5, atol=1e-5)
+
+
 # ============================================
 #                  EXP
 # ============================================
@@ -180,8 +198,6 @@ def test_cos_forward(array):
 # ============================================
 #                  SIN
 # ============================================
-
-
 @given(array=test_utils.array_or_scalar_strategy)
 def test_sin_forward(array):
     t = test_utils.make_tensor(array)
@@ -192,8 +208,6 @@ def test_sin_forward(array):
 # ============================================
 #                  RELU
 # ============================================
-
-
 @given(array=test_utils.array_or_scalar_strategy)
 def test_relu_forward(array):
     t = test_utils.make_tensor(array)
@@ -205,11 +219,46 @@ def test_relu_forward(array):
 # ============================================
 #                  SIGMOID
 # ============================================
-
-
 @given(array=test_utils.array_or_scalar_strategy)
 def test_sigmoid_forward(array):
     t = test_utils.make_tensor(array)
     result = eazygrad.sigmoid(t).numpy()
     expected = torch.sigmoid(torch.tensor(array)).numpy()
     np.testing.assert_allclose(result, expected, rtol=1e-5, atol=1e-5)
+
+# ============================================
+#                  MSE LOSS
+# ============================================
+@given(arrays=test_utils.array_pair_same_compat_strategy)
+def test_mse_loss(arrays):
+    predicted, target = map(test_utils.make_tensor, arrays)
+    result = eazygrad.mse_loss(predicted, target).numpy()
+    expected = torch.nn.functional.mse_loss(
+        torch.tensor(arrays[0]), torch.tensor(arrays[1])
+    ).numpy()
+    np.testing.assert_allclose(result, expected, rtol=1e-5, atol=1e-5)
+
+# ============================================
+#                  BCE LOSS
+# ============================================
+# @given(arrays=test_utils.array_pair_same_compat_strategy)
+# def test_bce_loss_with_logits(arrays):
+#     logits, target = map(test_utils.make_tensor, arrays)
+#     predicted = eazygrad.sigmoid(logits)
+#     result = eazygrad.bce_loss(predicted, target).numpy()
+    
+#     expected = torch.nn.functional.binary_cross_entropy_with_logits(
+#         torch.tensor(arrays[0]), torch.tensor(arrays[1])
+#     ).numpy()
+#     np.testing.assert_allclose(result, expected, rtol=1e-5, atol=1e-5)
+
+# @given(arrays=test_utils.array_pair_same_compat_strategy)
+# def test_bce_loss(arrays):
+#     predicted = test_utils.make_tensor(np.abs(arrays[0]))
+#     target = test_utils.make_tensor(np.abs(arrays[1]))
+#     result = eazygrad.bce_loss(predicted, target).numpy()
+    
+#     expected = torch.nn.functional.binary_cross_entropy(
+#         torch.tensor(np.abs(arrays[0])), torch.tensor(np.abs(arrays[1]))
+#     ).numpy()
+#     np.testing.assert_allclose(result, expected, rtol=1e-5, atol=1e-5)

@@ -1,5 +1,6 @@
 import numpy as np
 from .math import log
+from .specials import logsumexp
 
 def mse_loss(predicted, target):
     return ((predicted - target) ** 2).mean()

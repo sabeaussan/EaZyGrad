@@ -51,3 +51,15 @@ def softmax(input, dim):
 	else :
 		raise NotImplementedError
 	return result
+
+def log_softmax(input, dim):
+	if check.is_scalar(input):
+		raise TypeError("Expected a tensor")
+	elif isinstance(input, _Tensor):
+		_validate_dim_arg(dim)
+		# Type promotion for numerical stability
+		input = input.double()
+		result = input - logsumexp(input, dim, keepdims=True).float()
+	else :
+		raise NotImplementedError
+	return result

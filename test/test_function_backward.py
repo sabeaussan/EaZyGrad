@@ -29,7 +29,7 @@ def test_logsumexp_backward(array):
 # ------------------ Softmax ------------------
 
 @given(array=test_utils.array_or_scalar_strategy)
-def test_softmax_backward_autograd(array):
+def test_softmax_backward(array):
     x = test_utils.make_tensor(array, requires_grad=True)
 
     if x.ndim == 0:
@@ -41,6 +41,32 @@ def test_softmax_backward_autograd(array):
 
     t = torch.tensor(array, requires_grad=True)
     y_torch = torch.softmax(t, dim=dim)
+
+    grad_output = test_utils._random_grad(y._array.shape)
+    y.backward(grad_output)
+    y_torch.backward(torch.tensor(grad_output))
+
+    np.testing.assert_allclose(
+        x.grad, t.grad.numpy(),
+        atol=1e-5, rtol=1e-5,
+    )
+
+
+# ------------------ Log softmax ------------------
+
+@given(array=test_utils.array_or_scalar_strategy)
+def test_log_softmax_backward_autograd(array):
+    x = test_utils.make_tensor(array, requires_grad=True)
+
+    if x.ndim == 0:
+        dim = 0
+    else:
+        dim = random.randint(0, x.ndim - 1)
+
+    y = eazygrad.log_softmax(x, dim=dim)
+
+    t = torch.tensor(array, requires_grad=True)
+    y_torch = torch.log_softmax(t, dim=dim)
 
     grad_output = test_utils._random_grad(y._array.shape)
     y.backward(grad_output)

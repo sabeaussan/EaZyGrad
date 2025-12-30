@@ -63,28 +63,9 @@ def _random_grad(shape):
         return np.array(np.random.rand(), dtype=np.float32)
     return np.random.rand(*shape).astype(np.float32)
 
-# Build broadcast compatible arrays
-def matmul_shapes(min_dims=1, max_dims=4, min_side=1, max_side=5):
-    """Generate a pair of broadcast-compatible shapes."""
-    
-    # Pick a "base" shape
-    base_shape = hnp.array_shapes(
-        min_dims=min_dims, max_dims=max_dims,
-        min_side=min_side, max_side=max_side
-    )
 
-    def make_compatible(shape):
-        # Rule: prepend extra dims or use size=1 in some dims
-        return st.lists(
-            st.one_of(st.just(1), st.integers(1, max_side)),
-            min_size=len(shape), max_size=len(shape)
-        ).map(lambda dims: tuple(d if s == 1 else s for d, s in zip(dims, shape)))
-
-    return base_shape.flatmap(
-        lambda shape: st.tuples(
-            st.just(shape), make_compatible(shape)
-        )
-    )
+def transform_same(dims, shape):
+    return shape
 
 def transform_broadcastable(dims, shape):
     return tuple(d if s == 1 else s for d, s in zip(dims, shape))
@@ -129,6 +110,19 @@ def compatible_shapes(transform, min_dims=1, max_dims=4, min_side=1, max_side=5)
     )
 
 array_pair_broadcast_compat_strategy = compatible_shapes(transform_broadcastable).flatmap(
+    lambda shapes: st.tuples(
+        hnp.arrays(
+            dtype=np.float32, shape=shapes[0],
+            elements=float_strategy
+        ),
+        hnp.arrays(
+            dtype=np.float32, shape=shapes[1],
+            elements=float_strategy
+        )
+    )
+)
+
+array_pair_same_compat_strategy = compatible_shapes(transform_same).flatmap(
     lambda shapes: st.tuples(
         hnp.arrays(
             dtype=np.float32, shape=shapes[0],
