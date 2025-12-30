@@ -35,6 +35,8 @@ __all__ = [
     "BatchNorm2d",
 ]
 
+EPS = 1e-12
+
 class Operation:
 
 	# stateful 
@@ -79,32 +81,78 @@ class Mul(Operation):
 class Div(Operation):
 
 	def backward(self, grad_output):
+		# Type promotion for division
+		dtype = self.context[0].dtype
+		x_64 = self.context[0].astype(np.float64, copy=False)
+		y_64 = self.context[1].astype(np.float64, copy=False)
+
+		# Possibly recast gradients to original dtype
+		# if dtype is float64, no op
+		grad_x = (1 / y_64).astype(dtype, copy=False)
+		grad_y = (- x_64 / (y_64 ** 2)).astype(dtype, copy=False)
+
 		if grad_output is None :
-			return (1/self.context[1], - (self.context[0]/self.context[1]**2))
-		return (1/self.context[1] * grad_output, - (self.context[0]/self.context[1]**2) * grad_output)
+			return (grad_x, grad_y)
+		return (grad_x * grad_output, grad_y * grad_output)
 
 class RDiv(Operation):
 
 	def backward(self, grad_output):
+		# Type promotion for division
+		dtype = self.context[0].dtype
+		x_64 = self.context[0].astype(np.float64, copy=False)
+		
+		# Possibly recast gradients to original dtype
+		# if dtype is float64, no op
+		grad_x = (- self.context[1] / (x_64 ** 2)).astype(dtype, copy=False)
+
 		if grad_output is None :
-			return (-self.context[1]/(self.context[0]**2), None)
-		return (-self.context[1]/(self.context[0]**2) * grad_output, None)
+			return (grad_x, None)
+		return (grad_x * grad_output, None)
 
 class Pow(Operation):
 
 	def backward(self, grad_output):
+		if self.context[1] == 0:
+			grad_x = np.zeros_like(self.context[0])
+		else:
+			grad_x = self.context[1] * (self.context[0]**(self.context[1]-1))
 		if grad_output is None:
-			return (self.context[1] * (self.context[0]**(self.context[1]-1)),)	
-		return (self.context[1] * (self.context[0]**(self.context[1]-1)) * grad_output,)
+			return (grad_x,)	
+		return (grad_x * grad_output,)
+	
+class InnerProduct(Operation):
+
+	def backward(self, grad_output):
+		grad_x = self.context[1]
+		grad_y = self.context[0]
+		if grad_output is None :
+			return (grad_x, grad_y)
+		else :
+			return (grad_output * grad_x, grad_output * grad_y)
 
 
 class MatMul(Operation):
 
 	def backward(self, grad_output):
+		if self.context[0].ndim > 1 :
+			grad_x = np.swapaxes(self.context[1],-1,-2)
+		# else:
+		# 	grad_x = np.expand_dims(self.context[1], axis=0)
+
+		if self.context[1].ndim > 1 :
+			grad_y = np.swapaxes(self.context[0],-1,-2)
+		# else:
+		# 	grad_y = np.expand_dims(self.context[0], axis=1)
+
+		if grad_output.ndim==0:
+			grad_output = np.expand_dims(grad_output, axis=0)
+
 		if grad_output is None :
-			return (np.swapaxes(self.context[1],-1,-2), np.swapaxes(self.context[0],-1,-2))
+			return (grad_x, grad_y)
 		else :
-			return (grad_output@np.swapaxes(self.context[1],-1,-2), np.swapaxes(self.context[0],-1,-2)@grad_output)
+			print(grad_output.shape, grad_x.shape, grad_y.shape)
+			return (grad_output@grad_x, grad_y@grad_output)
 
 
 class Sum(Operation):

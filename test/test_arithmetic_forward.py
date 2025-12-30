@@ -3,6 +3,9 @@ import pytest
 from hypothesis import given, strategies as st
 import test_utils
 
+# TODO : merge scalar and tensor tests where possible
+# TODO : modify array_pair_broadcast_compat_strategy to generate arrays for scalars too
+
 
 # ---- ADDITION ----
 @given(array=test_utils.array_strategy, scalar=test_utils.scalar_strategy)
@@ -10,6 +13,12 @@ def test_add_scalar(array, scalar):
     a = test_utils.make_tensor(array)
     b = a + scalar
     np.testing.assert_array_equal(b._array, array + scalar)
+
+@given(array=test_utils.array_strategy, scalar=test_utils.scalar_strategy)
+def test_radd_scalar(array, scalar):
+    a = test_utils.make_tensor(array)
+    b = scalar + a
+    np.testing.assert_array_equal(b._array, scalar + array)
 
 
 @given(arrays=test_utils.array_pair_broadcast_compat_strategy)
@@ -61,6 +70,12 @@ def test_rmul_scalar(array, scalar):
     a = test_utils.make_tensor(array)
     b = scalar * a
     np.testing.assert_array_equal(b._array, scalar * array)
+
+@given(array=test_utils.array_strategy)
+def test_neg(array):
+    a = test_utils.make_tensor(array)
+    b = -a
+    np.testing.assert_array_equal(b._array, -array)
 
 
 # ---- DIVISION ----
@@ -132,7 +147,7 @@ def test_matmul_invalid_input(array1, array2):
     data=st.data(),
 )
 def test_mean_forward(array, keepdims, data):
-    dim_arg = _random_axes(array, data)
+    dim_arg = test_utils._random_axes(array, data)
     tensor = test_utils.make_tensor(array)
     result = tensor.mean(dim=dim_arg, keepdims=keepdims)
 
@@ -157,7 +172,7 @@ def test_mean_forward(array, keepdims, data):
     data=st.data(),
 )
 def test_sum_forward(array, keepdims, data):
-    dim_arg = _random_axes(array, data)
+    dim_arg = test_utils._random_axes(array, data)
     tensor = test_utils.make_tensor(array)
     result = tensor.sum(dim=dim_arg, keepdims=keepdims)
 

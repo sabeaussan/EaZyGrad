@@ -126,8 +126,14 @@ class _Tensor:
             if len(other._array.shape)==0 or len(self._array.shape)==0:
                 raise RuntimeError(f"Both arguments to matmul need to be at least 1D, but got {len(other._array.shape)}D and {len(self._array.shape)}D.")
             requires_grad = self.requires_grad or other.requires_grad
+            # Numpy handles all the broadcasting rules for matmul and different shape cases
             result = _Tensor(np.matmul(self._array, other._array), requires_grad=requires_grad)
-            result.node_id = dag.create_node(parents_id=[self.node_id, other.node_id], operation=operations.MatMul(self._array, other._array), result=result)
+            # Need to select the right operation depending on the shape of the two arrays
+            if len(self._array.shape) == 1 and len(other._array.shape) == 1:
+                # Inner product
+                result.node_id = dag.create_node(parents_id=[self.node_id, other.node_id], operation=operations.InnerProduct(self._array, other._array), result=result)
+            else:
+                result.node_id = dag.create_node(parents_id=[self.node_id, other.node_id], operation=operations.MatMul(self._array, other._array), result=result)
             return result
         else:
             raise RuntimeError("Expected a _Tensor")
