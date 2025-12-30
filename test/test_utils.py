@@ -58,6 +58,11 @@ array_or_scalar_strategy = hnp.arrays(
     elements=float_strategy,
 )
 
+def _random_grad(shape):
+    if shape == ():
+        return np.array(np.random.rand(), dtype=np.float32)
+    return np.random.rand(*shape).astype(np.float32)
+
 # Build broadcast compatible arrays
 def matmul_shapes(min_dims=1, max_dims=4, min_side=1, max_side=5):
     """Generate a pair of broadcast-compatible shapes."""

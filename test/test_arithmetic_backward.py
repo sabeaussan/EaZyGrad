@@ -4,11 +4,6 @@ from hypothesis import given, strategies as st
 import test_utils
 import torch
 
-def _random_grad(shape):
-    if shape == ():
-        return np.array(np.random.rand(), dtype=np.float32)
-    return np.random.rand(*shape).astype(np.float32)
-
 @given(arrays=test_utils.array_pair_broadcast_compat_strategy)
 def test_add_backward(arrays):
 	a_ez, b_ez = map(test_utils.make_tensor, arrays)
@@ -17,7 +12,7 @@ def test_add_backward(arrays):
 	r_ez = a_ez + b_ez
 	r_t = a_t + b_t
 
-	grad_output = _random_grad(r_ez._array.shape)
+	grad_output = test_utils._random_grad(r_ez._array.shape)
 	r_ez.backward(grad_output)
 	r_t.backward(torch.tensor(grad_output))
 	np.testing.assert_allclose(a_ez.grad, a_t.grad.numpy(), rtol=5e-5, atol=5e-5)
@@ -32,7 +27,7 @@ def test_sub_backward(arrays):
     r_ez = a_ez - b_ez
     r_t = a_t - b_t
 
-    grad_output = _random_grad(r_ez._array.shape)
+    grad_output = test_utils._random_grad(r_ez._array.shape)
     r_ez.backward(grad_output)
     r_t.backward(torch.tensor(grad_output))
     np.testing.assert_allclose(a_ez.grad, a_t.grad.numpy(), rtol=5e-5, atol=5e-5)
@@ -47,7 +42,7 @@ def test_mul_backward(arrays):
     r_ez = a_ez * b_ez
     r_t = a_t * b_t
 
-    grad_output = _random_grad(r_ez._array.shape)
+    grad_output = test_utils._random_grad(r_ez._array.shape)
     r_ez.backward(grad_output)
     r_t.backward(torch.tensor(grad_output))
     np.testing.assert_allclose(a_ez.grad, a_t.grad.numpy(), rtol=5e-5, atol=5e-5)
@@ -61,7 +56,7 @@ def test_neg_backward(array):
     r_ez = -a_ez
     r_t = -a_t
 
-    grad_output = _random_grad(r_ez._array.shape)
+    grad_output = test_utils._random_grad(r_ez._array.shape)
     r_ez.backward(grad_output)
     r_t.backward(torch.tensor(grad_output))
     np.testing.assert_allclose(a_ez.grad, a_t.grad.numpy(), rtol=5e-5, atol=5e-5)
@@ -78,7 +73,7 @@ def test_truediv_backward(arrays):
     r_ez = a_ez / b_ez
     r_t = a_t / b_t
 
-    grad_output = _random_grad(r_ez._array.shape)
+    grad_output = test_utils._random_grad(r_ez._array.shape)
     r_ez.backward(grad_output)
     r_t.backward(torch.tensor(grad_output))
     np.testing.assert_allclose(a_ez.grad, a_t.grad.numpy(), rtol=5e-5, atol=5e-5)
@@ -92,7 +87,7 @@ def test_pow_backward(array, exponent):
     r_ez = a_ez ** exponent
     r_t = a_t ** exponent
 
-    grad_output = _random_grad(r_ez._array.shape)
+    grad_output = test_utils._random_grad(r_ez._array.shape)
     r_ez.backward(grad_output)
     r_t.backward(torch.tensor(grad_output))
     np.testing.assert_allclose(a_ez.grad, a_t.grad.numpy(), rtol=5e-5, atol=5e-5)
@@ -106,7 +101,7 @@ def test_matmul_backward(arrays):
     r_ez = a_ez @ b_ez
     r_t = a_t @ b_t
 
-    grad_output = _random_grad(r_ez._array.shape)
+    grad_output = test_utils._random_grad(r_ez._array.shape)
     r_ez.backward(grad_output)
     r_t.backward(torch.tensor(grad_output))
     np.testing.assert_allclose(a_ez.grad, a_t.grad.numpy(), rtol=5e-5, atol=5e-5)
@@ -129,7 +124,7 @@ def test_mean_backward(array, keepdims, data):
         axes = tuple(range(a_t.ndim))
     r_t = a_t.mean(dim=axes, keepdim=keepdims)
 
-    grad_output = _random_grad(r_ez._array.shape)
+    grad_output = test_utils._random_grad(r_ez._array.shape)
     r_ez.backward(grad_output)
     r_t.backward(torch.tensor(grad_output))
     np.testing.assert_allclose(a_ez.grad, a_t.grad.numpy(), rtol=5e-5, atol=5e-5)
@@ -151,7 +146,7 @@ def test_sum_backward(array, keepdims, data):
         axes = tuple(range(a_t.ndim))
     r_t = a_t.sum(dim=axes, keepdim=keepdims)
 
-    grad_output = _random_grad(r_ez._array.shape)
+    grad_output = test_utils._random_grad(r_ez._array.shape)
     r_ez.backward(grad_output)
     r_t.backward(torch.tensor(grad_output))
     np.testing.assert_allclose(a_ez.grad, a_t.grad.numpy(), rtol=5e-5, atol=5e-5)

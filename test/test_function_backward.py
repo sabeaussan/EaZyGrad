@@ -1,12 +1,13 @@
 import numpy as np
-from hypothesis import given
-import pytensor
+from hypothesis import given, settings
+import eazygrad
 import torch
 import random
 import test_utils
 
-# ------------------ Log sum exp ------------------
 
+# ------------------ Log sum exp ------------------
+@settings(deadline=1000)
 @given(array=test_utils.array_or_scalar_strategy)
 def test_logsumexp_backward(array):
     # TODO : rajouter le test de keep dims
@@ -17,17 +18,18 @@ def test_logsumexp_backward(array):
     else:
         dim = random.randint(0, t.ndim - 1)
     keepdims = random.random() > 0.5
-    expected = torch.logsumexp(t, dim=dim, keepdims=keepdims).sum()
-    result = pytensor.logsumexp(ez, dim=dim, keepdims=keepdims).sum()
-    expected.backward()
-    result.backward()
+    r_ez = eazygrad.logsumexp(ez, dim=dim, keepdims=keepdims)
+    r_t = torch.logsumexp(t, dim=dim, keepdims=keepdims)
+    grad_output = test_utils._random_grad(r_ez._array.shape)
+    r_ez.backward(grad_output)
+    r_t.backward(torch.tensor(grad_output))
     np.testing.assert_allclose(ez.grad, t.grad.numpy(), rtol=5e-5, atol=5e-5)
 
 
 # ------------------ Softmax ------------------
 
 @given(array=test_utils.array_or_scalar_strategy)
-def test_softmax_backward(array):
+def test_softmax_backward_autograd(array):
     x = test_utils.make_tensor(array, requires_grad=True)
 
     if x.ndim == 0:
@@ -35,13 +37,14 @@ def test_softmax_backward(array):
     else:
         dim = random.randint(0, x.ndim - 1)
 
-    y = pytensor.softmax(x, dim=dim)
-    y_sum = y.sum()
-    y_sum.backward()
+    y = eazygrad.softmax(x, dim=dim)
 
     t = torch.tensor(array, requires_grad=True)
-    y_torch = torch.softmax(t, dim=dim).sum()
-    y_torch.backward()
+    y_torch = torch.softmax(t, dim=dim)
+
+    grad_output = test_utils._random_grad(y._array.shape)
+    y.backward(grad_output)
+    y_torch.backward(torch.tensor(grad_output))
 
     np.testing.assert_allclose(
         x.grad, t.grad.numpy(),
@@ -55,15 +58,16 @@ def test_softmax_backward(array):
 
 
 @given(array=test_utils.array_or_scalar_strategy)
-def test_exp_backward(array):
+def test_exp_backward_autograd(array):
     x = test_utils.make_tensor(array, requires_grad=True)
-    y = pytensor.exp(x)
-    y_sum = y.sum()
-    y_sum.backward()
+    y = eazygrad.exp(x)
 
     t = torch.tensor(array, requires_grad=True)
-    y_torch = torch.exp(t).sum()
-    y_torch.backward()
+    y_torch = torch.exp(t)
+
+    grad_output = test_utils._random_grad(y._array.shape)
+    y.backward(grad_output)
+    y_torch.backward(torch.tensor(grad_output))
 
     np.testing.assert_allclose(
         x.grad, t.grad.numpy(),
@@ -77,16 +81,63 @@ def test_exp_backward(array):
 
 
 @given(array=test_utils.array_or_scalar_strategy)
-def test_log_backward(array):
+def test_log_backward_autograd(array):
     array = np.abs(array) + 1e-3
     x = test_utils.make_tensor(array, requires_grad=True)
-    y = pytensor.log(x)
-    y_sum = y.sum()
-    y_sum.backward()
+    y = eazygrad.log(x)
 
     t = torch.tensor(array, requires_grad=True)
-    torch_y = torch.log(t).sum()
-    torch_y.backward()
+    torch_y = torch.log(t)
+
+    grad_output = test_utils._random_grad(y._array.shape)
+    y.backward(grad_output)
+    torch_y.backward(torch.tensor(grad_output))
+
+    np.testing.assert_allclose(
+        x.grad, t.grad.numpy(),
+        atol=1e-5, rtol=1e-5,
+    )
+
+
+# ============================================
+#                  COS
+# ============================================
+
+
+@given(array=test_utils.array_or_scalar_strategy)
+def test_cos_backward_autograd(array):
+    x = test_utils.make_tensor(array, requires_grad=True)
+    y = eazygrad.cos(x)
+
+    t = torch.tensor(array, requires_grad=True)
+    torch_y = torch.cos(t)
+
+    grad_output = test_utils._random_grad(y._array.shape)
+    y.backward(grad_output)
+    torch_y.backward(torch.tensor(grad_output))
+
+    np.testing.assert_allclose(
+        x.grad, t.grad.numpy(),
+        atol=1e-5, rtol=1e-5,
+    )
+
+
+# ============================================
+#                  SIN
+# ============================================
+
+
+@given(array=test_utils.array_or_scalar_strategy)
+def test_sin_backward_autograd(array):
+    x = test_utils.make_tensor(array, requires_grad=True)
+    y = eazygrad.sin(x)
+
+    t = torch.tensor(array, requires_grad=True)
+    torch_y = torch.sin(t)
+
+    grad_output = test_utils._random_grad(y._array.shape)
+    y.backward(grad_output)
+    torch_y.backward(torch.tensor(grad_output))
 
     np.testing.assert_allclose(
         x.grad, t.grad.numpy(),
@@ -100,14 +151,16 @@ def test_log_backward(array):
 
 
 @given(array=test_utils.array_or_scalar_strategy)
-def test_relu_backward(array):
+def test_relu_backward_autograd(array):
     x = test_utils.make_tensor(array, requires_grad=True)
-    y = pytensor.relu(x).sum()
-    y.backward()
+    y = eazygrad.relu(x)
 
     t = torch.tensor(array, requires_grad=True)
-    torch_y = torch.relu(t).sum()
-    torch_y.backward()
+    torch_y = torch.relu(t)
+
+    grad_output = test_utils._random_grad(y._array.shape)
+    y.backward(grad_output)
+    torch_y.backward(torch.tensor(grad_output))
 
     np.testing.assert_allclose(
         x.grad, t.grad.numpy(),
@@ -121,14 +174,16 @@ def test_relu_backward(array):
 
 
 @given(array=test_utils.array_or_scalar_strategy)
-def test_sigmoid_backward(array):
+def test_sigmoid_backward_autograd(array):
     x = test_utils.make_tensor(array, requires_grad=True)
-    y = pytensor.sigmoid(x).sum()
-    y.backward()
+    y = eazygrad.sigmoid(x)
 
     t = torch.tensor(array, requires_grad=True)
-    torch_y = torch.sigmoid(t).sum()
-    torch_y.backward()
+    torch_y = torch.sigmoid(t)
+
+    grad_output = test_utils._random_grad(y._array.shape)
+    y.backward(grad_output)
+    torch_y.backward(torch.tensor(grad_output))
 
     np.testing.assert_allclose(
         x.grad, t.grad.numpy(),
