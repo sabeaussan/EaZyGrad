@@ -51,6 +51,13 @@ array_strategy = hnp.arrays(
     elements=float_strategy,
 )
 
+# N-D arrays or scalars
+array_or_scalar_strategy = hnp.arrays(
+    dtype=np.float32,
+    shape=hnp.array_shapes(min_dims=0, max_dims=4, min_side=1, max_side=5),
+    elements=float_strategy,
+)
+
 # Build broadcast compatible arrays
 def matmul_shapes(min_dims=1, max_dims=4, min_side=1, max_side=5):
     """Generate a pair of broadcast-compatible shapes."""
