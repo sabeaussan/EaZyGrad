@@ -3,12 +3,6 @@ from .grad import operations, dag
 from .utils import check
 
 
-# /!\ TODO : add equal func
-
-# TODO : add ez no grad
-# TODO : prevent type promotion
-# TODO : add maybe_promote_to_float64 where needed or use copy=False in astype
-
 class _Tensor:
 
     def __init__(self, array, requires_grad, dtype=None):
