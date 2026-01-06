@@ -241,16 +241,15 @@ def test_mse_loss(arrays):
 # ============================================
 #                  BCE LOSS
 # ============================================
-# @given(arrays=test_utils.array_pair_same_compat_strategy)
-# def test_bce_loss_with_logits(arrays):
-#     logits, target = map(test_utils.make_tensor, arrays)
-#     predicted = eazygrad.sigmoid(logits)
-#     result = eazygrad.bce_loss(predicted, target).numpy()
+@given(arrays=test_utils.array_pair_same_compat_strategy)
+def test_bce_loss_with_logits(arrays):
+    logits, target = map(test_utils.make_tensor, arrays)
+    result = eazygrad.bce_with_logits_loss(logits, target).numpy()
     
-#     expected = torch.nn.functional.binary_cross_entropy_with_logits(
-#         torch.tensor(arrays[0]), torch.tensor(arrays[1])
-#     ).numpy()
-#     np.testing.assert_allclose(result, expected, rtol=1e-5, atol=1e-5)
+    expected = torch.nn.functional.binary_cross_entropy_with_logits(
+        torch.tensor(arrays[0]), torch.tensor(arrays[1])
+    ).numpy()
+    np.testing.assert_allclose(result, expected, rtol=1e-5, atol=1e-5)
 
 # @given(arrays=test_utils.array_pair_same_compat_strategy)
 # def test_bce_loss(arrays):

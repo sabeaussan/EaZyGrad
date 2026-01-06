@@ -215,3 +215,29 @@ def test_sigmoid_backward_autograd(array):
         x.grad, t.grad.numpy(),
         atol=1e-5, rtol=1e-5,
     )
+
+
+# ============================================
+#           BCE WITH LOGITS LOSS
+# ============================================
+
+
+@given(arrays=test_utils.array_pair_same_compat_strategy)
+def test_bce_with_logits_backward_autograd(arrays):
+    logits_array, target_array = arrays
+    logits = test_utils.make_tensor(logits_array, requires_grad=True)
+    target = test_utils.make_tensor(target_array, requires_grad=False)
+    y = eazygrad.bce_with_logits_loss(logits, target)
+
+    t_logits = torch.tensor(logits_array, requires_grad=True)
+    t_target = torch.tensor(target_array)
+    y_torch = torch.nn.functional.binary_cross_entropy_with_logits(t_logits, t_target)
+
+    grad_output = test_utils._random_grad(y._array.shape)
+    y.backward(grad_output)
+    y_torch.backward(torch.tensor(grad_output))
+
+    np.testing.assert_allclose(
+        logits.grad, t_logits.grad.numpy(),
+        atol=1e-5, rtol=1e-5,
+    )

@@ -268,26 +268,49 @@ class SwapDims(Operation):
 	
 class LogSumExp(Operation):
 
-	def backward(self, grad_output):
-		# Type promotion for exp and sum
-		input_array = self.context[0] #float64
-		logsumexp = self.context[1] #float64
-		dim = self.context[2]
-		dtype = grad_output.dtype
+	def _softmax_from_logsumexp(input_array, logsumexp, dim, dtype):
+		# Ensure logsumexp has same ndim as input_array for broadcasting
 		if logsumexp.ndim < input_array.ndim:
-			# logsumexp was squeezed (keepdims = False)
 			logsumexp = np.expand_dims(logsumexp, axis=dim)
 		shifted_input = input_array - logsumexp
-		softmax = np.exp(shifted_input).astype(dtype, copy=False)  # shape broadcastable to input_array
+		return np.exp(shifted_input).astype(dtype, copy=False)
+
+	def backward(self, grad_output):
+		# Type promotion for exp and sum
+		input_array = self.context[0] # float64
+		logsumexp = self.context[1]   # float64
+		dim = self.context[2]
+
+		# Choose a dtype safely (grad_output may be None)
+		dtype = grad_output.dtype if grad_output is not None else input_array.dtype
+
+		softmax = LogSumExp._softmax_from_logsumexp(input_array, logsumexp, dim, dtype)
 
 		if grad_output is None:
 			return (softmax,)
 		else:
 			# Ensure grad_output has the correct shape for broadcasting
-			if grad_output.ndim < input_array.ndim: 
-				# logsumexp was squeezed (keepdims = False)
+			if grad_output.ndim < input_array.ndim:
 				grad_output = np.expand_dims(grad_output, axis=dim)
 			return (softmax * grad_output,)
+		
+class BinaryCrossEntropy(Operation):
+
+	def backward(self, grad_output):
+		logits = self.context[0]
+		target = self.context[1]
+		dtype = grad_output.dtype if grad_output is not None else logits.dtype
+		target = target.astype(dtype, copy=False)
+		# Stable sigmoid to avoid overflow for large |logits|
+		sigmoid = np.where(
+			logits >= 0,
+			1 / (1 + np.exp(-logits)),
+			np.exp(logits) / (1 + np.exp(logits))
+		).astype(dtype, copy=False)
+		grad = sigmoid - target
+		if grad_output is None:
+			return (grad,)
+		return (grad * grad_output,)
 		
 class Copy(Operation):
 
