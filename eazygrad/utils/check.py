@@ -8,7 +8,7 @@ VALID_DTYPES = frozenset({
 })
 
 def input_array_type(array, dtype):
-	dtype = np.dtype(dtype).type
+	dtype = np.dtype(dtype).type if dtype is not None else None
 	if dtype is not None and (dtype not in VALID_DTYPES):
 		raise TypeError(f"Specified dtype not supported : {dtype}. List of supported dtypes : {VALID_DTYPES}")
 	if isinstance(array, np.ndarray):
