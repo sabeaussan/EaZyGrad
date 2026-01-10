@@ -2,16 +2,23 @@ import numpy as np
 import numbers
 import fractions
 
+VALID_DTYPES = frozenset({
+    np.float32, np.float64, 
+	np.int32, np.int64,
+})
+
 def input_array_type(array, dtype):
-	if dtype is not None and (dtype!=np.float32 and dtype!=np.float64):
-		raise TypeError("EaZyGrad currently only support float32 and float64 dtypes.")
+	dtype = np.dtype(dtype).type
+	if dtype is not None and (dtype not in VALID_DTYPES):
+		raise TypeError(f"Specified dtype not supported : {dtype}. List of supported dtypes : {VALID_DTYPES}")
 	if isinstance(array, np.ndarray):
 		if 0 in array.shape:
 			raise ValueError("Array with at least one of the dimension empty is not supported")
 		if dtype is None:
 			dtype = array.dtype
-		if dtype!=np.float32 and dtype!=np.float64:
-			raise TypeError(f"Array of dype {dtype} is not supported.")
+		if array.dtype != dtype:
+			array = array.astype(dtype)
+		
 	elif isinstance(array, list):
 		if len(array) == 0:
 			raise ValueError("Empty list as input is not supported")

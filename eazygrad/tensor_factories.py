@@ -8,7 +8,7 @@ from ._tensor import _Tensor
 
 # TODO : à tester
 def from_numpy(array, requires_grad=True):
-
+    # TODO : Should keep the same dtype as the input array and memory if possible
     if not isinstance(array, np.ndarray):
         raise TypeError(f"Input should be a np.ndarray but got {type(array)}.")
 
@@ -18,6 +18,7 @@ def from_numpy(array, requires_grad=True):
     return new_tensor
 
 def tensor(array, requires_grad=True, dtype=None):
+    # TODO : add raise Warning if input array is numpy because of copy
     # TODO : if node does not require grad, node is not in the graph ?
     # TODO : should accept scalar as input and float64
     new_tensor = _Tensor(array=array, requires_grad=requires_grad, dtype=dtype)

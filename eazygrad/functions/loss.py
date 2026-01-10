@@ -51,7 +51,7 @@ def cross_entropy_loss(predicted, target):
 		if target.shape == (predicted.shape[0],):
 			# Target is class indices
 			target_logits = predicted[np.arange(predicted.shape[0]), target._array]
-			cross_entropy = logsumexp(predicted, dim=-1, keepdims=True) - target_logits 
+			cross_entropy = logsumexp(predicted, dim=-1, keepdims=False) - target_logits 
 		elif target.shape == predicted.shape:
 			# distribution / soft targets
 			lse = logsumexp(predicted, dim=-1, keepdims=False)         # (N,)

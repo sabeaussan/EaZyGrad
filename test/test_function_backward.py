@@ -265,7 +265,7 @@ def test_cross_entropy_loss_backward_class_indices(data):
     )
 
     logits = test_utils.make_tensor(logits_array, requires_grad=True)
-    target = eazygrad.tensor(target_array, requires_grad=False, dtype=np.float32)
+    target = eazygrad.tensor(target_array, requires_grad=False, dtype=np.int64)
     y = eazygrad.cross_entropy_loss(logits, target)
 
     t_logits = torch.tensor(logits_array, requires_grad=True)
