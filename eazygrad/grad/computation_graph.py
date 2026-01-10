@@ -63,6 +63,11 @@ class ComputationGraph:
 				parent_nodes_id = self.dag.get(current_node_id, [])
 				if parent_nodes_id:
 					for parent_id, grad in zip(parent_nodes_id, grad_output):
+						if parent_id is None:
+							# TODO : raising error for cross entropy loss with soft targets
+							# need further investigation (maybe target which does not require grad is the culprit)
+							# print(current_node_id, current_node.operation, print(grad))
+							continue
 						parent = self.node_map[parent_id]
 						if parent.result.requires_grad:
 							grad = pyt.check_broadcasted_shape(grad, parent.result)
@@ -72,6 +77,8 @@ class ComputationGraph:
 								parent.result.grad += grad
 						if -parent_id not in pending_nodes:
 							heapq.heappush(pending_nodes, -parent_id)
+		# TODO : add retain graph option
+		self.clear()
 							
 
 

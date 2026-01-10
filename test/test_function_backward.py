@@ -1,5 +1,6 @@
 import numpy as np
-from hypothesis import given, settings
+from hypothesis import given, settings, strategies as st
+import hypothesis.extra.numpy as hnp
 import eazygrad
 import torch
 import random
@@ -232,6 +233,85 @@ def test_bce_with_logits_backward_autograd(arrays):
     t_logits = torch.tensor(logits_array, requires_grad=True)
     t_target = torch.tensor(target_array)
     y_torch = torch.nn.functional.binary_cross_entropy_with_logits(t_logits, t_target)
+
+    grad_output = test_utils._random_grad(y._array.shape)
+    y.backward(grad_output)
+    y_torch.backward(torch.tensor(grad_output))
+
+    np.testing.assert_allclose(
+        logits.grad, t_logits.grad.numpy(),
+        atol=1e-5, rtol=1e-5,
+    )
+
+
+# ============================================
+#             CROSS ENTROPY LOSS
+# ============================================
+
+
+@given(data=st.data())
+def test_cross_entropy_loss_backward_class_indices(data):
+    shape = data.draw(hnp.array_shapes(min_dims=2, max_dims=2, min_side=1, max_side=5))
+    batch_size, num_classes = shape
+    logits_array = data.draw(
+        hnp.arrays(dtype=np.float32, shape=shape, elements=test_utils.float_strategy)
+    )
+    target_array = data.draw(
+        hnp.arrays(
+            dtype=np.int64,
+            shape=(batch_size,),
+            elements=st.integers(min_value=0, max_value=num_classes - 1),
+        )
+    )
+
+    logits = test_utils.make_tensor(logits_array, requires_grad=True)
+    target = eazygrad.tensor(target_array, requires_grad=False, dtype=np.float32)
+    y = eazygrad.cross_entropy_loss(logits, target)
+
+    t_logits = torch.tensor(logits_array, requires_grad=True)
+    t_target = torch.tensor(target_array)
+    y_torch = torch.nn.functional.cross_entropy(t_logits, t_target)
+
+    grad_output = test_utils._random_grad(y._array.shape)
+    y.backward(grad_output)
+    y_torch.backward(torch.tensor(grad_output))
+
+    np.testing.assert_allclose(
+        logits.grad, t_logits.grad.numpy(),
+        atol=1e-5, rtol=1e-5,
+    )
+
+
+@given(data=st.data())
+def test_cross_entropy_loss_backward_probs(data):
+    shape = data.draw(hnp.array_shapes(min_dims=2, max_dims=2, min_side=1, max_side=5))
+    logits_array = data.draw(
+        hnp.arrays(dtype=np.float32, shape=shape, elements=test_utils.float_strategy)
+    )
+    target_raw = data.draw(
+        hnp.arrays(
+            dtype=np.float32,
+            shape=shape,
+            elements=st.floats(
+                min_value=0.0,
+                max_value=1.0,
+                allow_nan=False,
+                allow_infinity=False,
+                allow_subnormal=False,
+                width=32,
+            ),
+        )
+    )
+    target_probs = target_raw + np.float32(1e-6)
+    target_probs = target_probs / target_probs.sum(axis=1, keepdims=True)
+
+    logits = test_utils.make_tensor(logits_array, requires_grad=True)
+    target = test_utils.make_tensor(target_probs, requires_grad=False)
+    y = eazygrad.cross_entropy_loss(logits, target)
+
+    t_logits = torch.tensor(logits_array, requires_grad=True)
+    t_target = torch.tensor(target_probs)
+    y_torch = torch.nn.functional.cross_entropy(t_logits, t_target)
 
     grad_output = test_utils._random_grad(y._array.shape)
     y.backward(grad_output)
