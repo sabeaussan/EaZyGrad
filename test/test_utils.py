@@ -64,6 +64,22 @@ def _random_grad(shape):
     return np.random.rand(*shape).astype(np.float32)
 
 
+def logits_and_class_targets(data, min_side=1, max_side=5):
+    shape = data.draw(hnp.array_shapes(min_dims=2, max_dims=2, min_side=min_side, max_side=max_side))
+    batch_size, num_classes = shape
+    logits_array = data.draw(
+        hnp.arrays(dtype=np.float32, shape=shape, elements=float_strategy)
+    )
+    target_array = data.draw(
+        hnp.arrays(
+            dtype=np.int64,
+            shape=(batch_size,),
+            elements=st.integers(min_value=0, max_value=num_classes - 1),
+        )
+    )
+    return logits_array, target_array
+
+
 def transform_same(dims, shape):
     return shape
 

@@ -251,18 +251,7 @@ def test_bce_with_logits_backward_autograd(arrays):
 
 @given(data=st.data())
 def test_cross_entropy_loss_backward_class_indices(data):
-    shape = data.draw(hnp.array_shapes(min_dims=2, max_dims=2, min_side=1, max_side=5))
-    batch_size, num_classes = shape
-    logits_array = data.draw(
-        hnp.arrays(dtype=np.float32, shape=shape, elements=test_utils.float_strategy)
-    )
-    target_array = data.draw(
-        hnp.arrays(
-            dtype=np.int64,
-            shape=(batch_size,),
-            elements=st.integers(min_value=0, max_value=num_classes - 1),
-        )
-    )
+    logits_array, target_array = test_utils.logits_and_class_targets(data)
 
     logits = test_utils.make_tensor(logits_array, requires_grad=True)
     target = eazygrad.tensor(target_array, requires_grad=False, dtype=np.int64)
@@ -319,5 +308,33 @@ def test_cross_entropy_loss_backward_probs(data):
 
     np.testing.assert_allclose(
         logits.grad, t_logits.grad.numpy(),
+        atol=1e-5, rtol=1e-5,
+    )
+
+
+# ============================================
+#                 NLL LOSS
+# ============================================
+
+
+@given(data=st.data())
+def test_nll_loss_backward(data):
+    logits_array, target_array = test_utils.logits_and_class_targets(data)
+
+    log_probs = torch.log_softmax(torch.tensor(logits_array), dim=1).numpy()
+    predicted = test_utils.make_tensor(log_probs, requires_grad=True)
+    target = eazygrad.tensor(target_array, requires_grad=False, dtype=np.int64)
+    y = eazygrad.nll_loss(predicted, target)
+
+    t_predicted = torch.tensor(log_probs, requires_grad=True)
+    t_target = torch.tensor(target_array)
+    y_torch = torch.nn.functional.nll_loss(t_predicted, t_target)
+
+    grad_output = test_utils._random_grad(y._array.shape)
+    y.backward(grad_output)
+    y_torch.backward(torch.tensor(grad_output))
+
+    np.testing.assert_allclose(
+        predicted.grad, t_predicted.grad.numpy(),
         atol=1e-5, rtol=1e-5,
     )

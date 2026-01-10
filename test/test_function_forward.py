@@ -270,18 +270,7 @@ def test_bce_loss_with_logits(arrays):
 
 @given(data=st.data())
 def test_cross_entropy_loss_forward_class_indices(data):
-    shape = data.draw(hnp.array_shapes(min_dims=2, max_dims=2, min_side=1, max_side=5))
-    batch_size, num_classes = shape
-    logits_array = data.draw(
-        hnp.arrays(dtype=np.float32, shape=shape, elements=test_utils.float_strategy)
-    )
-    target_array = data.draw(
-        hnp.arrays(
-            dtype=np.int64,
-            shape=(batch_size,),
-            elements=st.integers(min_value=0, max_value=num_classes - 1),
-        )
-    )
+    logits_array, target_array = test_utils.logits_and_class_targets(data)
 
     logits = test_utils.make_tensor(logits_array, requires_grad=False)
     target = eazygrad.tensor(target_array, requires_grad=False, dtype=np.int64)
@@ -322,5 +311,25 @@ def test_cross_entropy_loss_forward_probs(data):
 
     expected = torch.nn.functional.cross_entropy(
         torch.tensor(logits_array), torch.tensor(target_probs)
+    ).numpy()
+    np.testing.assert_allclose(result, expected, rtol=1e-5, atol=1e-5)
+
+
+# ============================================
+#                 NLL LOSS
+# ============================================
+
+
+@given(data=st.data())
+def test_nll_loss_forward(data):
+    logits_array, target_array = test_utils.logits_and_class_targets(data)
+
+    log_probs = torch.log_softmax(torch.tensor(logits_array), dim=1).numpy()
+    predicted = test_utils.make_tensor(log_probs, requires_grad=False)
+    target = eazygrad.tensor(target_array, requires_grad=False, dtype=np.int64)
+    result = eazygrad.nll_loss(predicted, target).numpy()
+
+    expected = torch.nn.functional.nll_loss(
+        torch.tensor(log_probs), torch.tensor(target_array)
     ).numpy()
     np.testing.assert_allclose(result, expected, rtol=1e-5, atol=1e-5)
