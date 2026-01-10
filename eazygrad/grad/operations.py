@@ -35,7 +35,6 @@ __all__ = [
     "BatchNorm2d",
 ]
 
-EPS = 1e-12
 
 class Operation:
 
@@ -156,7 +155,6 @@ class MatMul(Operation):
 
 
 class Sum(Operation):
-	# TODO : rajouter la prise en charge de keepdims = False car on doit récupérer la dimension squeeze afin de correctement backprop
 	def backward(self, grad_output):
 		dim, keepdims = self.context[1]
 		if grad_output is None :
@@ -168,7 +166,6 @@ class Sum(Operation):
 			return (grad_output*np.ones(self.context[0], dtype=np.float32),)
 
 class Mean(Operation):
-	# TODO : rajouter la prise en charge de keepdims = False car on doit récupérer la dimension squeeze afin de correctement backprop
 	def backward(self, grad_output):
 		dim, keepdims = self.context[2]
 		if grad_output is None :

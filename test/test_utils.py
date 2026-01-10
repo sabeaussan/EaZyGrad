@@ -12,7 +12,7 @@ import functools
 # Property-based tests
 # -----------------------------
 
-def _random_axes(array, data):
+def random_axes(array, data):
     dims = data.draw(
         st.one_of(
             st.none(),

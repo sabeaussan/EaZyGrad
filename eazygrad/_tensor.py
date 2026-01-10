@@ -6,7 +6,7 @@ from .utils import check
 class _Tensor:
 
     def __init__(self, array, requires_grad, dtype=None):
-        # TODO : Warning ! array is not copied if this __init__ function is used instead of tensor factory
+        # /!\ Warning ! array is not copied if this __init__ function is used instead of tensor factories
         self._array = check.input_array_type(array, dtype)
         self.ndim = self._array.ndim
         self.dtype = self._array.dtype
@@ -15,7 +15,7 @@ class _Tensor:
         self.requires_grad = requires_grad
         self.grad = None
         # the node_id reflects the creation node of the tensor
-        self.node_id = None # /!\ TODO : what happens if the tensor belongs to multiple nodes ?-> node can be parent of multiple nodes, but child of only one
+        self.node_id = None
 
     def __len__(self):
         return self._array.shape[0]

@@ -39,6 +39,7 @@ def bce_loss(predicted, target):
 	return -(target * log(predicted) + (1 - target) * log(1 - predicted)).mean()
 
 def cross_entropy_loss(predicted, target):
+	# TODO : add support for multi-dimensional inputs (e.g. image segmentation)
 	# TODO : checks for predicted and target dtype, shape compatibility
 	# Expect predicted to be Tensor with logits shape (N, C)
 	# target should be Tensor with class indices or target distribution
@@ -47,10 +48,17 @@ def cross_entropy_loss(predicted, target):
 	if check.is_scalar(predicted):
 		raise TypeError("Expected a tensor")
 	elif isinstance(predicted, _Tensor):
+		if predicted.ndim != 2:
+			raise ValueError("Expected predicted to have shape (N, C)")
 		# Numerically stable computation of cross entropy loss
 		if target.shape == (predicted.shape[0],):
 			# Target is class indices
-			target_logits = predicted[np.arange(predicted.shape[0]), target._array]
+			if not np.issubdtype(target._array.dtype, np.integer):
+				raise TypeError("Target class indices must be an integer tensor")
+			target_idx = target._array.astype(np.int64, copy=False)
+			if np.any(target_idx < 0) or np.any(target_idx >= predicted.shape[1]):
+				raise ValueError("Target class indices are out of range")
+			target_logits = predicted[np.arange(predicted.shape[0]), target_idx]
 			cross_entropy = logsumexp(predicted, dim=-1, keepdims=False) - target_logits 
 		elif target.shape == predicted.shape:
 			# distribution / soft targets

@@ -8,6 +8,8 @@ from ._tensor import _Tensor
 
 # TODO : à tester
 def from_numpy(array, requires_grad=True):
+    # fast path to create tensor from numpy array without copy
+    # /!\ Warning ! changes to the original array will be reflected in the tensor and vice versa
     # TODO : Should keep the same dtype as the input array and memory if possible
     if not isinstance(array, np.ndarray):
         raise TypeError(f"Input should be a np.ndarray but got {type(array)}.")
