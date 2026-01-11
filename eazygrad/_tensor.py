@@ -12,7 +12,7 @@ class _Tensor:
         self.dtype = self._array.dtype
         if requires_grad and not np.issubdtype(dtype, np.floating):
             raise TypeError("Only tensors with floating point dtype can require gradients.")
-        self.requires_grad = requires_grad
+        self.requires_grad = requires_grad and dag.grad_enable
         self.grad = None
         # the node_id reflects the creation node of the tensor
         self.node_id = None
@@ -32,18 +32,21 @@ class _Tensor:
 
     def __getitem__(self, key):
         result = _Tensor(self._array[key], requires_grad=self.requires_grad)
-        result.node_id = dag.create_node(parents_id=[self.node_id], operation=operations.Slice(self._array.shape, key), result=result)
+        if self.requires_grad:
+            result.node_id = dag.create_node(parents_id=[self.node_id], operation=operations.Slice(self._array.shape, key), result=result)
         return result
 
     def __add__(self, other):
         if check.is_scalar(other):
             requires_grad = self.requires_grad
             result = _Tensor(self._array + other, requires_grad=requires_grad)
-            result.node_id = dag.create_node(parents_id=[self.node_id], operation=operations.Add(self._array, other), result=result)
+            if requires_grad:
+                result.node_id = dag.create_node(parents_id=[self.node_id], operation=operations.Add(self._array, other), result=result)
         elif isinstance(other, _Tensor):
             requires_grad = self.requires_grad or other.requires_grad
             result = _Tensor(self._array + other._array, requires_grad=requires_grad)
-            result.node_id = dag.create_node(parents_id=[self.node_id, other.node_id], operation=operations.Add(self._array.shape, other._array.shape), result=result)
+            if requires_grad:
+                result.node_id = dag.create_node(parents_id=[self.node_id, other.node_id], operation=operations.Add(self._array.shape, other._array.shape), result=result)
         else:
             raise NotImplementedError
         return result
@@ -55,11 +58,13 @@ class _Tensor:
         if check.is_scalar(other):
             requires_grad = self.requires_grad
             result = _Tensor(self._array - other, requires_grad=requires_grad)
-            result.node_id = dag.create_node(parents_id=[self.node_id], operation=operations.Sub(self._array, other), result=result)
+            if requires_grad:
+                result.node_id = dag.create_node(parents_id=[self.node_id], operation=operations.Sub(self._array, other), result=result)
         elif isinstance(other, _Tensor):
             requires_grad = self.requires_grad or other.requires_grad
             result = _Tensor(self._array - other._array, requires_grad=requires_grad)
-            result.node_id = dag.create_node(parents_id=[self.node_id, other.node_id], operation=operations.Sub(self._array.shape, other._array.shape), result=result)
+            if requires_grad:
+                result.node_id = dag.create_node(parents_id=[self.node_id, other.node_id], operation=operations.Sub(self._array.shape, other._array.shape), result=result)
         else:
             raise NotImplementedError
         return result
@@ -74,11 +79,13 @@ class _Tensor:
         if check.is_scalar(other):
             requires_grad = self.requires_grad
             result = _Tensor(self._array * other, requires_grad=requires_grad)
-            result.node_id = dag.create_node(parents_id=[self.node_id], operation=operations.Mul(self._array, other), result=result)
+            if requires_grad:
+                result.node_id = dag.create_node(parents_id=[self.node_id], operation=operations.Mul(self._array, other), result=result)
         elif isinstance(other, _Tensor):
             requires_grad = self.requires_grad or other.requires_grad
             result = _Tensor(self._array * other._array, requires_grad=requires_grad)
-            result.node_id = dag.create_node(parents_id=[self.node_id, other.node_id], operation=operations.Mul(self._array, other._array), result=result)
+            if requires_grad:
+                result.node_id = dag.create_node(parents_id=[self.node_id, other.node_id], operation=operations.Mul(self._array, other._array), result=result)
         else:
             raise NotImplementedError
         return result
@@ -90,11 +97,13 @@ class _Tensor:
         if check.is_scalar(other):
             requires_grad = self.requires_grad
             result = _Tensor(self._array / other, requires_grad=requires_grad)
-            result.node_id = dag.create_node(parents_id=[self.node_id], operation=operations.Div(self._array, other), result=result)
+            if requires_grad:
+                result.node_id = dag.create_node(parents_id=[self.node_id], operation=operations.Div(self._array, other), result=result)
         elif isinstance(other, _Tensor):
             requires_grad = self.requires_grad or other.requires_grad
             result = _Tensor(self._array / other._array, requires_grad=requires_grad)
-            result.node_id = dag.create_node(parents_id=[self.node_id, other.node_id], operation=operations.Div(self._array, other._array), result=result)
+            if requires_grad:
+                result.node_id = dag.create_node(parents_id=[self.node_id, other.node_id], operation=operations.Div(self._array, other._array), result=result)
         else:
             raise NotImplementedError
         return result
@@ -103,7 +112,8 @@ class _Tensor:
         if check.is_scalar(other):
             requires_grad = self.requires_grad
             result = _Tensor(other / self._array, requires_grad=requires_grad)
-            result.node_id = dag.create_node(parents_id=[self.node_id], operation=operations.RDiv(self._array, other), result=result)
+            if requires_grad:
+                result.node_id = dag.create_node(parents_id=[self.node_id], operation=operations.RDiv(self._array, other), result=result)
         elif isinstance(other, _Tensor):
             raise NotImplementedError
         else:
@@ -114,7 +124,8 @@ class _Tensor:
         if check.is_scalar(other):
             requires_grad = self.requires_grad
             result = _Tensor(self._array ** other, requires_grad=requires_grad)
-            result.node_id = dag.create_node(parents_id=[self.node_id], operation=operations.Pow(self._array, other), result=result)
+            if requires_grad:
+                result.node_id = dag.create_node(parents_id=[self.node_id], operation=operations.Pow(self._array, other), result=result)
         elif isinstance(other, _Tensor):
             raise NotImplementedError("Raising a _Tensor to a power of type _Tensor is not supported, feel free to implement that ;)")
         else:
@@ -133,9 +144,11 @@ class _Tensor:
             # Need to select the right operation depending on the shape of the two arrays
             if len(self._array.shape) == 1 and len(other._array.shape) == 1:
                 # Inner product
-                result.node_id = dag.create_node(parents_id=[self.node_id, other.node_id], operation=operations.InnerProduct(self._array, other._array), result=result)
+                if requires_grad:
+                    result.node_id = dag.create_node(parents_id=[self.node_id, other.node_id], operation=operations.InnerProduct(self._array, other._array), result=result)
             else:
-                result.node_id = dag.create_node(parents_id=[self.node_id, other.node_id], operation=operations.MatMul(self._array, other._array), result=result)
+                if requires_grad:
+                    result.node_id = dag.create_node(parents_id=[self.node_id, other.node_id], operation=operations.MatMul(self._array, other._array), result=result)
             return result
         else:
             raise RuntimeError("Expected a _Tensor")
@@ -146,7 +159,8 @@ class _Tensor:
     def reshape(self, *shape):
         # TODO : does it copy the array ?
         result = _Tensor(self._array.reshape(shape), requires_grad=self.requires_grad)
-        result.node_id = dag.create_node(parents_id=[self.node_id], operation=operations.Reshape(self._array.shape), result=result)
+        if self.requires_grad:
+            result.node_id = dag.create_node(parents_id=[self.node_id], operation=operations.Reshape(self._array.shape), result=result)
         return result
 
     def mean(self, dim = None, keepdims = False):
@@ -160,8 +174,9 @@ class _Tensor:
             self._array.astype(np.float64, copy=False).mean(axis=dim, keepdims=keepdims).astype(np.float32), 
             requires_grad=requires_grad
         )
-        div_factor = 1 / np.prod([self.shape[ax] for ax in dim])
-        result.node_id = dag.create_node(parents_id=[self.node_id], operation=operations.Mean(self._array.shape, div_factor, (dim, keepdims)), result=result)
+        if requires_grad:
+            div_factor = 1 / np.prod([self.shape[ax] for ax in dim])
+            result.node_id = dag.create_node(parents_id=[self.node_id], operation=operations.Mean(self._array.shape, div_factor, (dim, keepdims)), result=result)
         return result
 
     def sum(self, dim = None, keepdims = False):
@@ -173,7 +188,8 @@ class _Tensor:
             self._array.astype(np.float64, copy=False).sum(axis=dim, keepdims=keepdims).astype(np.float32), 
             requires_grad=requires_grad
         )
-        result.node_id = dag.create_node(parents_id=[self.node_id], operation=operations.Sum(self._array.shape, (dim, keepdims)), result=result)
+        if requires_grad:
+            result.node_id = dag.create_node(parents_id=[self.node_id], operation=operations.Sum(self._array.shape, (dim, keepdims)), result=result)
         return result
 
     @property
@@ -182,17 +198,20 @@ class _Tensor:
 
     def expand_dims(self, *dim):
         result = _Tensor(np.expand_dims(self._array, axis=dim), requires_grad=self.requires_grad)
-        result.node_id = dag.create_node(parents_id=[self.node_id], operation=operations.ExpandDims(dim), result=result)
+        if self.requires_grad:
+            result.node_id = dag.create_node(parents_id=[self.node_id], operation=operations.ExpandDims(dim), result=result)
         return result
 
     def squeeze(self, *dim):
         result = _Tensor(np.squeeze(self._array, axis=dim), requires_grad=self.requires_grad)
-        result.node_id = dag.create_node(parents_id=[self.node_id], operation=operations.Squeeze(dim), result=result)
+        if self.requires_grad:
+            result.node_id = dag.create_node(parents_id=[self.node_id], operation=operations.Squeeze(dim), result=result)
         return result
 
     def swapdims(self, dim1, dim2):
         result = _Tensor(np.swapaxes(self._array, dim1, dim2), requires_grad=self.requires_grad)
-        result.node_id = dag.create_node(parents_id=[self.node_id], operation=operations.SwapDims(dim1, dim2), result=result)
+        if self.requires_grad:
+            result.node_id = dag.create_node(parents_id=[self.node_id], operation=operations.SwapDims(dim1, dim2), result=result)
         return result
 
     def T(self):

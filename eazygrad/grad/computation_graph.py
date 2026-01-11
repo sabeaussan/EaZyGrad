@@ -22,6 +22,7 @@ class ComputationGraph:
 		self.dag = {}
 		self.node_count = -1
 		self.node_map = {}
+		self.grad_enable = True
 
 	def clear(self):
 		self.dag = {}
@@ -29,6 +30,8 @@ class ComputationGraph:
 		self.node_map = {}
 
 	def create_node(self, parents_id, operation, result, is_leaf= False):
+		if not self.grad_enable:
+			return None
 		# Increase node counter for id
 		self.node_count += 1
 		# Instantiate node
