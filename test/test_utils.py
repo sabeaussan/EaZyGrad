@@ -58,7 +58,7 @@ array_or_scalar_strategy = hnp.arrays(
     elements=float_strategy,
 )
 
-def _random_grad(shape):
+def random_grad(shape):
     if shape == ():
         return np.array(np.random.rand(), dtype=np.float32)
     return np.random.rand(*shape).astype(np.float32)

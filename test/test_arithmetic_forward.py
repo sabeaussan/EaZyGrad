@@ -147,7 +147,7 @@ def test_matmul_invalid_input(array1, array2):
     data=st.data(),
 )
 def test_mean_forward(array, keepdims, data):
-    dim_arg = test_utils._random_axes(array, data)
+    dim_arg = test_utils.random_axes(array, data)
     tensor = test_utils.make_tensor(array)
     result = tensor.mean(dim=dim_arg, keepdims=keepdims)
 
@@ -172,7 +172,7 @@ def test_mean_forward(array, keepdims, data):
     data=st.data(),
 )
 def test_sum_forward(array, keepdims, data):
-    dim_arg = test_utils._random_axes(array, data)
+    dim_arg = test_utils.random_axes(array, data)
     tensor = test_utils.make_tensor(array)
     result = tensor.sum(dim=dim_arg, keepdims=keepdims)
 

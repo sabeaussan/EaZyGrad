@@ -12,7 +12,7 @@ def test_add_backward(arrays):
 	r_ez = a_ez + b_ez
 	r_t = a_t + b_t
 
-	grad_output = test_utils._random_grad(r_ez._array.shape)
+	grad_output = test_utils.random_grad(r_ez._array.shape)
 	r_ez.backward(grad_output)
 	r_t.backward(torch.tensor(grad_output))
 	np.testing.assert_allclose(a_ez.grad, a_t.grad.numpy(), rtol=5e-5, atol=5e-5)
@@ -27,7 +27,7 @@ def test_sub_backward(arrays):
     r_ez = a_ez - b_ez
     r_t = a_t - b_t
 
-    grad_output = test_utils._random_grad(r_ez._array.shape)
+    grad_output = test_utils.random_grad(r_ez._array.shape)
     r_ez.backward(grad_output)
     r_t.backward(torch.tensor(grad_output))
     np.testing.assert_allclose(a_ez.grad, a_t.grad.numpy(), rtol=5e-5, atol=5e-5)
@@ -42,7 +42,7 @@ def test_mul_backward(arrays):
     r_ez = a_ez * b_ez
     r_t = a_t * b_t
 
-    grad_output = test_utils._random_grad(r_ez._array.shape)
+    grad_output = test_utils.random_grad(r_ez._array.shape)
     r_ez.backward(grad_output)
     r_t.backward(torch.tensor(grad_output))
     np.testing.assert_allclose(a_ez.grad, a_t.grad.numpy(), rtol=5e-5, atol=5e-5)
@@ -56,7 +56,7 @@ def test_neg_backward(array):
     r_ez = -a_ez
     r_t = -a_t
 
-    grad_output = test_utils._random_grad(r_ez._array.shape)
+    grad_output = test_utils.random_grad(r_ez._array.shape)
     r_ez.backward(grad_output)
     r_t.backward(torch.tensor(grad_output))
     np.testing.assert_allclose(a_ez.grad, a_t.grad.numpy(), rtol=5e-5, atol=5e-5)
@@ -73,7 +73,7 @@ def test_truediv_backward(arrays):
     r_ez = a_ez / b_ez
     r_t = a_t / b_t
 
-    grad_output = test_utils._random_grad(r_ez._array.shape)
+    grad_output = test_utils.random_grad(r_ez._array.shape)
     r_ez.backward(grad_output)
     r_t.backward(torch.tensor(grad_output))
     np.testing.assert_allclose(a_ez.grad, a_t.grad.numpy(), rtol=5e-5, atol=5e-5)
@@ -87,7 +87,7 @@ def test_pow_backward(array, exponent):
     r_ez = a_ez ** exponent
     r_t = a_t ** exponent
 
-    grad_output = test_utils._random_grad(r_ez._array.shape)
+    grad_output = test_utils.random_grad(r_ez._array.shape)
     r_ez.backward(grad_output)
     r_t.backward(torch.tensor(grad_output))
     np.testing.assert_allclose(a_ez.grad, a_t.grad.numpy(), rtol=5e-5, atol=5e-5)
@@ -101,7 +101,7 @@ def test_matmul_backward(arrays):
     r_ez = a_ez @ b_ez
     r_t = a_t @ b_t
 
-    grad_output = test_utils._random_grad(r_ez._array.shape)
+    grad_output = test_utils.random_grad(r_ez._array.shape)
     r_ez.backward(grad_output)
     r_t.backward(torch.tensor(grad_output))
     np.testing.assert_allclose(a_ez.grad, a_t.grad.numpy(), rtol=5e-5, atol=5e-5)
@@ -114,7 +114,7 @@ def test_matmul_backward(arrays):
     data=st.data(),
 )
 def test_mean_backward(array, keepdims, data):
-    dim_arg = test_utils._random_axes(array, data)
+    dim_arg = test_utils.random_axes(array, data)
     a_ez = test_utils.make_tensor(array)
     a_t = torch.tensor(array, requires_grad=True)
 
@@ -124,7 +124,7 @@ def test_mean_backward(array, keepdims, data):
         axes = tuple(range(a_t.ndim))
     r_t = a_t.mean(dim=axes, keepdim=keepdims)
 
-    grad_output = test_utils._random_grad(r_ez._array.shape)
+    grad_output = test_utils.random_grad(r_ez._array.shape)
     r_ez.backward(grad_output)
     r_t.backward(torch.tensor(grad_output))
     np.testing.assert_allclose(a_ez.grad, a_t.grad.numpy(), rtol=5e-5, atol=5e-5)
@@ -136,7 +136,7 @@ def test_mean_backward(array, keepdims, data):
     data=st.data(),
 )
 def test_sum_backward(array, keepdims, data):
-    dim_arg = test_utils._random_axes(array, data)
+    dim_arg = test_utils.random_axes(array, data)
     a_ez = test_utils.make_tensor(array)
     a_t = torch.tensor(array, requires_grad=True)
 
@@ -146,7 +146,7 @@ def test_sum_backward(array, keepdims, data):
         axes = tuple(range(a_t.ndim))
     r_t = a_t.sum(dim=axes, keepdim=keepdims)
 
-    grad_output = test_utils._random_grad(r_ez._array.shape)
+    grad_output = test_utils.random_grad(r_ez._array.shape)
     r_ez.backward(grad_output)
     r_t.backward(torch.tensor(grad_output))
     np.testing.assert_allclose(a_ez.grad, a_t.grad.numpy(), rtol=5e-5, atol=5e-5)

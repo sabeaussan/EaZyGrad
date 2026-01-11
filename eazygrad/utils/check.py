@@ -45,7 +45,7 @@ def check_tensors_type(func):
 def broadcasted_shape(grad, tensor):
 	"""
 		Sum along expanded axis
-		Used to correct for broadcasted shape
+		Used to correct for broadcasted shape during backpropagation
 	"""
 	
 	# Check expanded dims

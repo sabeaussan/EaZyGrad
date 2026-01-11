@@ -196,13 +196,17 @@ class _Tensor:
     def shape(self):
         return self._array.shape
 
-    def expand_dims(self, *dim):
+    def unsqueeze(self, *dim):
+        if len(dim) == 0:
+            dim = 0
         result = _Tensor(np.expand_dims(self._array, axis=dim), requires_grad=self.requires_grad)
         if self.requires_grad:
             result.node_id = dag.create_node(parents_id=[self.node_id], operation=operations.ExpandDims(dim), result=result)
         return result
 
     def squeeze(self, *dim):
+        if len(dim) == 0:
+            dim = None
         result = _Tensor(np.squeeze(self._array, axis=dim), requires_grad=self.requires_grad)
         if self.requires_grad:
             result.node_id = dag.create_node(parents_id=[self.node_id], operation=operations.Squeeze(dim), result=result)
