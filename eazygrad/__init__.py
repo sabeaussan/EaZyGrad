@@ -9,13 +9,22 @@ from .tensor_factories import *
 
 # TODO : add more robust matmul tests
 
-class no_grad:
+class no_grad_ctx:
 	"""
 	Context manager to disable gradient tracking.
 	"""
 	def __enter__(self):
-		self.prev_state = dag.enable_grad
-		dag.enable_grad = False
+		self.prev_state = dag.grad_enable
+		dag.grad_enable = False
 
 	def __exit__(self, exc_type, exc_value, traceback):
-		dag.enable_grad = self.prev_state
+		dag.grad_enable = self.prev_state
+
+def no_grad(func):
+	"""
+	Decorator to disable gradient tracking for a specific function.
+	"""
+	def wrapper(*args, **kwargs):
+		with no_grad_ctx():
+			return func(*args, **kwargs)
+	return wrapper
