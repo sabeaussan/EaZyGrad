@@ -67,7 +67,7 @@ def test_no_grad_decorator_disables_tracking_for_new_tensors():
     try:
         node_count_before = dag.node_count
 
-        @eazygrad.no_grad
+        @eazygrad.no_grad()
         def build_tensor():
             return eazygrad.tensor([1.0, 2.0], requires_grad=True)
 
@@ -88,7 +88,7 @@ def test_no_grad_decorator_disables_tracking_for_operations():
         y = eazygrad.tensor(np.array([3.0, 4.0], dtype=np.float32), requires_grad=True)
         node_count_before = dag.node_count
 
-        @eazygrad.no_grad
+        @eazygrad.no_grad()
         def add_tensors(a, b):
             return a + b
 
@@ -107,7 +107,7 @@ def test_no_grad_decorator_restores_state_on_exception():
     dag.grad_enable = True
     dag.clear()
     try:
-        @eazygrad.no_grad
+        @eazygrad.no_grad()
         def fail():
             assert dag.grad_enable is False
             raise RuntimeError("boom")
