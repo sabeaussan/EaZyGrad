@@ -24,7 +24,6 @@ htmlcov/
 .idea/
 
 # Temporary not tracking those files yet
-nn/
 optimizer.py
 
 *.svg
