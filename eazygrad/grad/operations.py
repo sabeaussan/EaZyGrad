@@ -28,10 +28,6 @@ __all__ = [
     "Squeeze",
     "SwapDims",
     "Pad",
-    "Conv2d",
-    "MaxPool2d",
-    "Var",
-    "BatchNorm2d",
 ]
 
 

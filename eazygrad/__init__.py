@@ -1,6 +1,7 @@
 from .functions import *
 from .tensor_factories import *
 from .utils import check
+from ._tensor import _Tensor
 # /!\ TODO : add equal func
 
 # TODO : add ez no grad
