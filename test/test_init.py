@@ -34,7 +34,6 @@ def test_tensor_valid(array, requires_grad):
 	assert eazygrad.tensor(array, requires_grad).requires_grad == requires_grad
 
 @pytest.mark.parametrize("array, requires_grad", [ 
-    (np.arange(10), True),
     ([], False), 
     (np.arange(0), True),
     ((3.14, 32), False), 

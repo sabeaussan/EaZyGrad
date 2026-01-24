@@ -118,7 +118,7 @@ def test_mean_backward(array, keepdims, data):
     a_ez = test_utils.make_tensor(array)
     a_t = torch.tensor(array, requires_grad=True)
 
-    r_ez = a_ez.mean(dim=dim_arg, keepdims=keepdims)
+    r_ez = a_ez.mean(dim=dim_arg, keepdim=keepdims)
     axes = dim_arg
     if axes is None:
         axes = tuple(range(a_t.ndim))

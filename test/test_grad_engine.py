@@ -264,6 +264,7 @@ def check_grads():
 
 
 def test_computation_graph():
+    dag.clear()
     torch.set_num_threads(1)
     global node_torch_id
     global dag_torch

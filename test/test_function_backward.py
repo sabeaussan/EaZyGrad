@@ -21,7 +21,7 @@ def test_logsumexp_backward(array):
     keepdims = random.random() > 0.5
     r_ez = eazygrad.logsumexp(ez, dim=dim, keepdims=keepdims)
     r_t = torch.logsumexp(t, dim=dim, keepdims=keepdims)
-    grad_output = test_utils._random_grad(r_ez._array.shape)
+    grad_output = test_utils.random_grad(r_ez._array.shape)
     r_ez.backward(grad_output)
     r_t.backward(torch.tensor(grad_output))
     np.testing.assert_allclose(ez.grad, t.grad.numpy(), rtol=5e-5, atol=5e-5)
@@ -43,7 +43,7 @@ def test_softmax_backward(array):
     t = torch.tensor(array, requires_grad=True)
     y_torch = torch.softmax(t, dim=dim)
 
-    grad_output = test_utils._random_grad(y._array.shape)
+    grad_output = test_utils.random_grad(y._array.shape)
     y.backward(grad_output)
     y_torch.backward(torch.tensor(grad_output))
 
@@ -69,7 +69,7 @@ def test_log_softmax_backward_autograd(array):
     t = torch.tensor(array, requires_grad=True)
     y_torch = torch.log_softmax(t, dim=dim)
 
-    grad_output = test_utils._random_grad(y._array.shape)
+    grad_output = test_utils.random_grad(y._array.shape)
     y.backward(grad_output)
     y_torch.backward(torch.tensor(grad_output))
 
@@ -92,7 +92,7 @@ def test_exp_backward_autograd(array):
     t = torch.tensor(array, requires_grad=True)
     y_torch = torch.exp(t)
 
-    grad_output = test_utils._random_grad(y._array.shape)
+    grad_output = test_utils.random_grad(y._array.shape)
     y.backward(grad_output)
     y_torch.backward(torch.tensor(grad_output))
 
@@ -116,7 +116,7 @@ def test_log_backward_autograd(array):
     t = torch.tensor(array, requires_grad=True)
     torch_y = torch.log(t)
 
-    grad_output = test_utils._random_grad(y._array.shape)
+    grad_output = test_utils.random_grad(y._array.shape)
     y.backward(grad_output)
     torch_y.backward(torch.tensor(grad_output))
 
@@ -139,7 +139,7 @@ def test_cos_backward_autograd(array):
     t = torch.tensor(array, requires_grad=True)
     torch_y = torch.cos(t)
 
-    grad_output = test_utils._random_grad(y._array.shape)
+    grad_output = test_utils.random_grad(y._array.shape)
     y.backward(grad_output)
     torch_y.backward(torch.tensor(grad_output))
 
@@ -162,7 +162,7 @@ def test_sin_backward_autograd(array):
     t = torch.tensor(array, requires_grad=True)
     torch_y = torch.sin(t)
 
-    grad_output = test_utils._random_grad(y._array.shape)
+    grad_output = test_utils.random_grad(y._array.shape)
     y.backward(grad_output)
     torch_y.backward(torch.tensor(grad_output))
 
@@ -185,7 +185,7 @@ def test_relu_backward_autograd(array):
     t = torch.tensor(array, requires_grad=True)
     torch_y = torch.relu(t)
 
-    grad_output = test_utils._random_grad(y._array.shape)
+    grad_output = test_utils.random_grad(y._array.shape)
     y.backward(grad_output)
     torch_y.backward(torch.tensor(grad_output))
 
@@ -208,7 +208,7 @@ def test_sigmoid_backward_autograd(array):
     t = torch.tensor(array, requires_grad=True)
     torch_y = torch.sigmoid(t)
 
-    grad_output = test_utils._random_grad(y._array.shape)
+    grad_output = test_utils.random_grad(y._array.shape)
     y.backward(grad_output)
     torch_y.backward(torch.tensor(grad_output))
 
@@ -234,7 +234,7 @@ def test_bce_with_logits_backward_autograd(arrays):
     t_target = torch.tensor(target_array)
     y_torch = torch.nn.functional.binary_cross_entropy_with_logits(t_logits, t_target)
 
-    grad_output = test_utils._random_grad(y._array.shape)
+    grad_output = test_utils.random_grad(y._array.shape)
     y.backward(grad_output)
     y_torch.backward(torch.tensor(grad_output))
 
@@ -261,7 +261,7 @@ def test_cross_entropy_loss_backward_class_indices(data):
     t_target = torch.tensor(target_array)
     y_torch = torch.nn.functional.cross_entropy(t_logits, t_target)
 
-    grad_output = test_utils._random_grad(y._array.shape)
+    grad_output = test_utils.random_grad(y._array.shape)
     y.backward(grad_output)
     y_torch.backward(torch.tensor(grad_output))
 
@@ -302,7 +302,7 @@ def test_cross_entropy_loss_backward_probs(data):
     t_target = torch.tensor(target_probs)
     y_torch = torch.nn.functional.cross_entropy(t_logits, t_target)
 
-    grad_output = test_utils._random_grad(y._array.shape)
+    grad_output = test_utils.random_grad(y._array.shape)
     y.backward(grad_output)
     y_torch.backward(torch.tensor(grad_output))
 
@@ -330,7 +330,7 @@ def test_nll_loss_backward(data):
     t_target = torch.tensor(target_array)
     y_torch = torch.nn.functional.nll_loss(t_predicted, t_target)
 
-    grad_output = test_utils._random_grad(y._array.shape)
+    grad_output = test_utils.random_grad(y._array.shape)
     y.backward(grad_output)
     y_torch.backward(torch.tensor(grad_output))
 
