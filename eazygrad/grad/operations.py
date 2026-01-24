@@ -7,6 +7,8 @@ from pytensor.utils import  _cross_correlation_fft, compute_padding_value, dilat
 
 # Primitive operations operating on Tensor. Define a single node in the computation graph
 
+# TODO : check return dtypes, there is force cast to float32 no matter the original dtype
+
 __all__ = [
     "Operation",
     "Add",
@@ -60,21 +62,21 @@ class Add(Operation):
 
 	def backward(self, grad_output):
 		if grad_output is None :
-			return (np.ones(self.context[0], dtype=np.float32), np.ones(self.context[1], dtype=np.float32))
+			return (np.ones(self.context[0], dtype=self.context[0].dtype), np.ones(self.context[1], dtype=self.context[0].dtype))
 		return (grad_output, grad_output)
 
 class Sub(Operation):
 
 	def backward(self, grad_output):
 		if grad_output is None :
-			return (np.ones(self.context[0], dtype=np.float32), -np.ones(self.context[1], dtype=np.float32))
+			return (np.ones(self.context[0], dtype=self.context[0].dtype), -np.ones(self.context[1], dtype=self.context[0].dtype))
 		return (grad_output, -grad_output)
 
 class Mul(Operation):
 
 	def backward(self, grad_output):
 		if grad_output is None :
-			return (self.context[1] * np.ones_like(self.context[1], dtype=np.float32), self.context[0]* np.ones_like(self.context[0], dtype=np.float32))
+			return (self.context[1] * np.ones_like(self.context[1], dtype=self.context[0].dtype), self.context[0]* np.ones_like(self.context[0], dtype=self.context[0].dtype))
 		return (self.context[1] * grad_output, self.context[0] * grad_output)
 
 class Div(Operation):
@@ -163,7 +165,7 @@ class Sum(Operation):
 			# Check keepdims
 			if not keepdims:
 				grad_output = np.expand_dims(grad_output, axis=dim)
-			return (grad_output*np.ones(self.context[0], dtype=np.float32),)
+			return (grad_output*np.ones(self.context[0], dtype=grad_output.dtype),)
 
 class Mean(Operation):
 	def backward(self, grad_output):
@@ -174,7 +176,7 @@ class Mean(Operation):
 			# Check keepdims
 			if not keepdims:
 				grad_output = np.expand_dims(grad_output, axis=dim)
-			return (grad_output*np.ones(self.context[0], dtype=np.float32)*self.context[1],)
+			return (grad_output*np.ones(self.context[0], dtype=grad_output.dtype)*self.context[1],)
 
 
 class Exp(Operation):
@@ -231,7 +233,7 @@ class Slice(Operation):
 		# TODO: pas hyper sur de ça
 		# Si les grad[key] on été utilisé différemment est ce que c'est toujours juste ?
 		key = self.context[1]
-		grad = np.zeros(self.context[0], dtype=np.float32)
+		grad = np.zeros(self.context[0], dtype=grad_output.dtype)
 		if grad_output is None :
 			grad[key] = 1
 		else :

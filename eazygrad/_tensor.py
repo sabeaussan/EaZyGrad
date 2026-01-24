@@ -163,7 +163,7 @@ class _Tensor:
             result.node_id = dag.create_node(parents_id=[self.node_id], operation=operations.Reshape(self._array.shape), result=result)
         return result
 
-    def mean(self, dim = None, keepdims = False):
+    def mean(self, dim = None, keepdim = False):
         # dim is int or tuple of ints
         if isinstance(dim, int):
             dim = (dim,)
@@ -171,12 +171,13 @@ class _Tensor:
         if dim is None:
             dim = tuple(np.arange(len(self.shape)))
         result = _Tensor(
-            self._array.astype(np.float64, copy=False).mean(axis=dim, keepdims=keepdims).astype(np.float32), 
+            self._array.astype(np.float64, copy=False).mean(axis=dim, keepdims=keepdim).astype(self.dtype), 
             requires_grad=requires_grad
         )
         if requires_grad:
-            div_factor = 1 / np.prod([self.shape[ax] for ax in dim])
-            result.node_id = dag.create_node(parents_id=[self.node_id], operation=operations.Mean(self._array.shape, div_factor, (dim, keepdims)), result=result)
+            # avoid native python casting to float64
+            div_factor = np.float32(1 / np.prod([self.shape[ax] for ax in dim]))
+            result.node_id = dag.create_node(parents_id=[self.node_id], operation=operations.Mean(self._array.shape, div_factor, (dim, keepdim)), result=result)
         return result
 
     def sum(self, dim = None, keepdims = False):
@@ -185,7 +186,7 @@ class _Tensor:
             dim = tuple(np.arange(len(self.shape)))
         requires_grad = self.requires_grad
         result = _Tensor(
-            self._array.astype(np.float64, copy=False).sum(axis=dim, keepdims=keepdims).astype(np.float32), 
+            self._array.astype(np.float64, copy=False).sum(axis=dim, keepdims=keepdims).astype(self.dtype), 
             requires_grad=requires_grad
         )
         if requires_grad:

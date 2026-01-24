@@ -64,4 +64,4 @@ def broadcasted_shape(grad, tensor):
 		# float64 promotion for reduction
 		grad = grad.astype(np.float64, copy=False)
 		grad = np.sum(grad, tuple(broadcasted_dims), keepdims = True)
-	return grad.astype(np.float32, copy=False)
+	return grad.astype(np.float32)

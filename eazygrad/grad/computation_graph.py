@@ -1,6 +1,6 @@
-import pytensor as pyt
+import eazygrad as ez
 import graphviz
-import queue
+import numpy as np
 import heapq
 
 class Node:
@@ -34,6 +34,7 @@ class ComputationGraph:
 			return None
 		# Increase node counter for id
 		self.node_count += 1
+		# print(self.node_count)
 		# Instantiate node
 		node = Node(parents_id, operation, result, is_leaf)
 		# Store node in a global map 
@@ -73,7 +74,7 @@ class ComputationGraph:
 							continue
 						parent = self.node_map[parent_id]
 						if parent.result.requires_grad:
-							grad = pyt.check_broadcasted_shape(grad, parent.result)
+							grad = ez.check.broadcasted_shape(grad, parent.result)
 							if parent.result.grad is None:
 								parent.result.grad = grad
 							else:
@@ -81,7 +82,8 @@ class ComputationGraph:
 						if -parent_id not in pending_nodes:
 							heapq.heappush(pending_nodes, -parent_id)
 		# TODO : add retain graph option
-		self.clear()
+		if not retain_graph:
+			self.clear()
 							
 
 
