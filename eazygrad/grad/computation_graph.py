@@ -63,10 +63,14 @@ class ComputationGraph:
 			current_node_id = -heapq.heappop(pending_nodes)
 			current_node = self.node_map[current_node_id]
 			if not current_node.is_leaf:
-				grad_output = current_node.operation.backward(current_node.result.grad)
+				grads_inputs = current_node.operation.backward(current_node.result.grad)
+				# At this point the context for current_node was consumed
+				# so we can set writeable=True.
+				if not current_node.result._array.flags.writeable:
+					current_node.result._array.flags.writeable=True
 				parent_nodes_id = self.dag.get(current_node_id, [])
 				if parent_nodes_id:
-					for parent_id, grad in zip(parent_nodes_id, grad_output):
+					for parent_id, grad in zip(parent_nodes_id, grads_inputs):
 						if parent_id is None:
 							# TODO : raising error for cross entropy loss with soft targets
 							# need further investigation (maybe target which does not require grad is the culprit)
