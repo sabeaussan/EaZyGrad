@@ -24,3 +24,5 @@ htmlcov/
 .idea/
 
 *.svg
+
+MNIST/

@@ -10,6 +10,7 @@ class _Tensor:
         self._array = check.input_array_type(array, dtype)
         self.ndim = self._array.ndim
         self.dtype = self._array.dtype
+        print(self.dtype)
         if requires_grad and not np.issubdtype(dtype, np.floating):
             raise TypeError("Only tensors with floating point dtype can require gradients.")
         self.requires_grad = requires_grad and dag.grad_enable

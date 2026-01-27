@@ -7,7 +7,7 @@ from ._tensor import _Tensor
 # TODO : redactor operations
 
 # TODO : à tester
-def from_numpy(array, requires_grad=True):
+def from_numpy(array, requires_grad=False):
     # fast path to create tensor from numpy array without copy
     # /!\ Warning ! changes to the original array will be reflected in the tensor and vice versa
     # TODO : Should keep the same dtype as the input array and memory if possible

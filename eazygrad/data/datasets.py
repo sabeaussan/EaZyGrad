@@ -18,7 +18,7 @@ def read_label_file(path):
 			raise TypeError(f"x should be of dtype np.uint8 instead of {x.dtype}")
 		if x.ndim != 1:
 			raise ValueError(f"x should have 1 dimension instead of {x.ndim}")
-		return ez.from_numpy(x).long()
+		return ez.from_numpy(x.astype(np.int64))
 	
 def read_image_file(path):
 	x = read_sn3_pascalvincent_array(path, strict=False)
@@ -153,10 +153,24 @@ class MNISTDataset:
 
 		label_file = f"{'train' if self.train else 't10k'}-labels-idx1-ubyte"
 		targets = read_label_file(os.path.join(self.raw_folder, label_file))
+		print("data loaded")
 
 		return data, targets
+	
+	def __getitem__(self, index):
+		"""
+		Args:
+			index (int): Index
+
+		Returns:
+			tuple: (image, target) where target is index of the target class.
+		"""
+		img, target = self.data[index], self.targets[index]
+
+		return img, target
 	
 	
 				
 if __name__ == "__main__":
 	dataset = MNISTDataset("")
+	print(dataset[10][1].dtype)
