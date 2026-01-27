@@ -250,6 +250,28 @@ class _Tensor:
             )
         return result
     
+    def int(self):
+        requires_grad = self.requires_grad
+        result = _Tensor(self._array.astype(np.int32, copy=False), requires_grad=requires_grad)
+        if requires_grad:
+            result.node_id = dag.create_node(
+                parents_id=[self.node_id], 
+                operation=operations.Copy(self.dtype), 
+                result=result
+            )
+        return result
+    
+    def long(self):
+        requires_grad = self.requires_grad
+        result = _Tensor(self._array.astype(np.int64, copy=False), requires_grad=requires_grad)
+        if requires_grad:
+            result.node_id = dag.create_node(
+                parents_id=[self.node_id], 
+                operation=operations.Copy(self.dtype), 
+                result=result
+            )
+        return result
+    
     def detach(self):
         # TODO : if node does not require grad, node is not in the graph ?
         return _Tensor(self._array.copy(), requires_grad=False)
