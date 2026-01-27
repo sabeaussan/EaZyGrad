@@ -153,7 +153,6 @@ class MNISTDataset:
 
 		label_file = f"{'train' if self.train else 't10k'}-labels-idx1-ubyte"
 		targets = read_label_file(os.path.join(self.raw_folder, label_file))
-		print("data loaded")
 
 		return data, targets
 	
