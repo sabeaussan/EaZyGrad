@@ -91,21 +91,6 @@ class MNISTDataset:
 		("t10k-labels-idx1-ubyte.gz", "ec29112dd5afa0611ce80d1b7f02629c"),
 	]
 
-	training_file = "training.pt"
-	test_file = "test.pt"
-	classes = [
-		"0 - zero",
-		"1 - one",
-		"2 - two",
-		"3 - three",
-		"4 - four",
-		"5 - five",
-		"6 - six",
-		"7 - seven",
-		"8 - eight",
-		"9 - nine",
-	]
-
 	def __init__(self, root, train=True):
 		self.root = root
 		self.train = train  # training set or test set
