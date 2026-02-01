@@ -40,6 +40,7 @@ class Operation:
 		for ctx in context:
 			if isinstance(ctx, np.ndarray):
 				# protection against in-place ops
+				# prevent modification of saved context
 				ctx.flags.writeable=False
 			self.context.append(ctx)
 

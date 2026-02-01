@@ -25,16 +25,22 @@ class ComputationGraph:
 		self.grad_enable = True
 
 	def clear(self):
+		# Clear all nodes
 		self.dag = {}
 		self.node_count = -1
 		self.node_map = {}
+
+	def clear_node(self, node_id):
+		# clear a specific node 
+		del self.dag[node_id]
+		del self.node_map[node_id]
+		self.node_count -= 1
 
 	def create_node(self, parents_id, operation, result, is_leaf= False):
 		if not self.grad_enable:
 			return None
 		# Increase node counter for id
 		self.node_count += 1
-		# print(self.node_count)
 		# Instantiate node
 		node = Node(parents_id, operation, result, is_leaf)
 		# Store node in a global map 
@@ -69,6 +75,9 @@ class ComputationGraph:
 				if not current_node.result._array.flags.writeable:
 					current_node.result._array.flags.writeable=True
 				parent_nodes_id = self.dag.get(current_node_id, [])
+				# Remove node from graph if not needed anymore
+				if not retain_graph:
+					self.clear_node(current_node_id)
 				if parent_nodes_id:
 					for parent_id, grad in zip(parent_nodes_id, grads_inputs):
 						if parent_id is None:
@@ -85,9 +94,6 @@ class ComputationGraph:
 								parent.result.grad += grad
 						if -parent_id not in pending_nodes:
 							heapq.heappush(pending_nodes, -parent_id)
-		# TODO : add retain graph option
-		if not retain_graph:
-			self.clear()
 							
 
 

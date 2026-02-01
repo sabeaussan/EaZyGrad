@@ -13,6 +13,10 @@ class Optimizer:
 		for p in self.parameters:
 			p.grad = 0
 
+	def set_writeable_flag(self, array):
+		# Allow in-place op
+		array.flags.writeable=True
+
 	def step(self):
 		raise NotImplementedError
 
@@ -24,4 +28,5 @@ class SGD(Optimizer):
 
 	def step(self):
 		for p in self.parameters:
+			self.set_writeable_flag(p._array)
 			p._array -= self.lr * p.grad 
