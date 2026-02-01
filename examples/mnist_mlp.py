@@ -43,7 +43,7 @@ class Model(nn.Module):
 
 m = Model(in_dim=784, out_dim=10, h_dim=128)
 print(m.net)
-optimizer = ez.SGD(m.net.parameters())
+optimizer = ez.SGD(m.net.parameters(), lr=1e-3)
 
 for e in range(n_epoch):
     start_idx = np.random.randint(len(dataset.data)-128)

@@ -1,11 +1,10 @@
 from PIL import Image
-import utils
+from . import utils
 import os
 from urllib.error import URLError
 import sys
 import codecs
 import numpy as np
-import eazygrad as ez
 
 def _flip_byte_order(arr):
 	return (
@@ -18,7 +17,7 @@ def read_label_file(path):
 			raise TypeError(f"x should be of dtype np.uint8 instead of {x.dtype}")
 		if x.ndim != 1:
 			raise ValueError(f"x should have 1 dimension instead of {x.ndim}")
-		return ez.from_numpy(x.astype(np.int64))
+		return x.astype(np.int64)
 	
 def read_image_file(path):
 	x = read_sn3_pascalvincent_array(path, strict=False)
@@ -26,7 +25,7 @@ def read_image_file(path):
 		raise TypeError(f"x should be of dtype np.uint8 instead of {x.dtype}")
 	if x.ndim != 3:
 		raise ValueError(f"x should have 3 dimension instead of {x.ndim}")
-	return ez.from_numpy(x)
+	return x
 
 SN3_PASCALVINCENT_TYPEMAP = {
 	8: np.uint8,
@@ -91,7 +90,7 @@ class MNISTDataset:
 		("t10k-labels-idx1-ubyte.gz", "ec29112dd5afa0611ce80d1b7f02629c"),
 	]
 
-	def __init__(self, root, train=True):
+	def __init__(self, root="", train=True):
 		self.root = root
 		self.train = train  # training set or test set
 		self.raw_folder = os.path.join(root, "MNIST")

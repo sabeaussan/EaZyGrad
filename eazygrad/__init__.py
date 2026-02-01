@@ -3,6 +3,8 @@ from .tensor_factories import *
 from .utils import check
 from ._tensor import _Tensor
 from . import nn
+from . import data
+from .optimizer import SGD
 # /!\ TODO : add equal func
 
 # TODO : add ez no grad

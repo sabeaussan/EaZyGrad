@@ -23,6 +23,9 @@ class ModuleList:
 	def __init__(self):
 		self.modules = []
 
+	def __len__(self):
+		return len(self.modules)
+
 	def __iter__(self):
 		self.index = 0
 		return self
