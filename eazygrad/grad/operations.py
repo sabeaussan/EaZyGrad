@@ -146,7 +146,7 @@ class MatMul(Operation):
 		if grad_output is None :
 			return (grad_x, grad_y)
 		else :
-			print(grad_output.shape, grad_x.shape, grad_y.shape)
+			# print(grad_output.shape, grad_x.shape, grad_y.shape)
 			return (grad_output@grad_x, grad_y@grad_output)
 
 

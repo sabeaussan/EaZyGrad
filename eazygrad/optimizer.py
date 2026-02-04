@@ -11,7 +11,7 @@ class Optimizer:
 
 	def zero_grad(self):
 		for p in self.parameters:
-			p.grad = 0
+			p.grad = None
 
 	def set_writeable_flag(self, array):
 		# Allow in-place op

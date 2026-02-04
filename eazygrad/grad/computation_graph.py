@@ -114,7 +114,7 @@ class ComputationGraph:
 			shape = "rectangle" if node.is_leaf else "circle"
 			fillcolor = "lightskyblue" if node.result.requires_grad else "mediumpurple"
 			G.node(str(node_id), label=label, shape=shape, style="filled", fillcolor=fillcolor, fontsize="20")
-			print(node_id, node.operation)
+			# print(node_id, node.operation)
 			for parent_id in self.dag[node_id]:
 				if parent_id is not None:
 					G.edge(str(parent_id), str(node_id))
