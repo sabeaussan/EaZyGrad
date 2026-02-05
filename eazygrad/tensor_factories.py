@@ -34,38 +34,38 @@ def tensor(array, requires_grad=True, dtype=None):
 # Add some doc and type hint for the rest of the code
 
 
-def randn(shape, requires_grad=False):
+def randn(shape, requires_grad=False, dtype=np.float32):
     if not isinstance(shape, tuple):
         raise TypeError(f"Expected a shape of type tuple, got {type(shape)} instead")
     if 0 in shape:
         raise ValueError("At least one of the dimension is empty")
-    return tensor(np.random.randn(*shape), requires_grad=requires_grad)
+    return tensor(np.random.randn(*shape).astype(dtype), requires_grad=requires_grad)
 
 
-def uniform(low, high, shape, requires_grad=False):
+def uniform(low, high, shape, requires_grad=False, dtype=np.float32):
     if not isinstance(shape, tuple):
         raise TypeError(f"Expected a shape of type tuple, got {type(shape)} instead")
     if not check.is_scalar(low) or not check.is_scalar(high):
         raise TypeError(f"Wrong type for bounds, got low={type(shape)}, high={type(shape)}")
     if 0 in shape:
         raise ValueError("At least one of the dimension is empty")
-    return tensor(np.random.uniform(low=low, high=high, size=shape), requires_grad=requires_grad)
+    return tensor(np.random.uniform(low=low, high=high, size=shape).astype(dtype), requires_grad=requires_grad)
 
 
-def ones(shape, requires_grad=False):
+def ones(shape, requires_grad=False, dtype=np.float32):
     if not isinstance(shape, tuple):
         raise TypeError(f"Expected a shape of type tuple, got {type(shape)} instead")
     if 0 in shape:
         raise ValueError("At least one of the dimension is empty")
-    return tensor(np.ones(shape), requires_grad=requires_grad)
+    return tensor(np.ones(shape).astype(dtype), requires_grad=requires_grad)
 
 
-def zeros(shape, requires_grad=False):
+def zeros(shape, requires_grad=False, dtype=np.float32):
     if not isinstance(shape, tuple):
         raise TypeError(f"Expected a shape of type tuple, got {type(shape)} instead")
     if 0 in shape:
         raise ValueError("At least one of the dimension is empty")
-    return tensor(np.zeros(shape), requires_grad=requires_grad)
+    return tensor(np.zeros(shape).astype(dtype), requires_grad=requires_grad)
 
 
 

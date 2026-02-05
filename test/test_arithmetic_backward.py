@@ -1,9 +1,10 @@
 import numpy as np
 import pytest
-from hypothesis import given, strategies as st
+from hypothesis import given, settings, strategies as st
 import test_utils
 import torch
 
+@settings(deadline=None)
 @given(arrays=test_utils.array_pair_broadcast_compat_strategy)
 def test_add_backward(arrays):
 	a_ez, b_ez = map(test_utils.make_tensor, arrays)

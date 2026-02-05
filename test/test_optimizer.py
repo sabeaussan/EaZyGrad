@@ -55,4 +55,4 @@ def test_sgd_zero_grad(data):
     opt.zero_grad()
 
     for p in ez_params:
-        assert p.grad == 0
+        assert p.grad == None

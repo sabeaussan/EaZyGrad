@@ -70,10 +70,6 @@ class ComputationGraph:
 			current_node = self.node_map[current_node_id]
 			if not current_node.is_leaf:
 				grads_inputs = current_node.operation.backward(current_node.result.grad)
-				# At this point the context for current_node was consumed
-				# so we can set writeable=True.
-				if not current_node.result._array.flags.writeable:
-					current_node.result._array.flags.writeable=True
 				parent_nodes_id = self.dag.get(current_node_id, [])
 				# Remove node from graph if not needed anymore
 				if not retain_graph:

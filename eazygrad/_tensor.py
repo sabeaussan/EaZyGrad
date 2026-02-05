@@ -132,22 +132,27 @@ class _Tensor:
             raise NotImplementedError
         return result
 
-    def matmul(self, other):
+    def matmul(self, other, out=None):
         if check.is_scalar(other):
             raise RuntimeError("Can't apply matrix multiplication with a scalar")
         elif isinstance(other, _Tensor):
-            if len(other._array.shape)==0 or len(self._array.shape)==0:
+            if other._array.ndim==0 or self._array.ndim==0:
                 raise RuntimeError(f"Both arguments to matmul need to be at least 1D, but got {len(other._array.shape)}D and {len(self._array.shape)}D.")
             requires_grad = self.requires_grad or other.requires_grad
             # Numpy handles all the broadcasting rules for matmul and different shape cases
-            result = _Tensor(np.matmul(self._array, other._array), requires_grad=requires_grad)
-            # Need to select the right operation depending on the shape of the two arrays
-            if len(self._array.shape) == 1 and len(other._array.shape) == 1:
-                # Inner product
-                if requires_grad:
-                    result.node_id = dag.create_node(parents_id=[self.node_id, other.node_id], operation=operations.InnerProduct(self._array, other._array), result=result)
+            if out is not None:
+                # out is a numpy array (your buffer)
+                np.matmul(self._array, other._array, out=out)
+                result_arr = out
             else:
-                if requires_grad:
+                result_arr = np.matmul(self._array, other._array)
+            result = _Tensor(result_arr, requires_grad=requires_grad)
+            # Need to select the right operation depending on the shape of the two arrays
+            if requires_grad:
+                if self._array.ndim == 1 and other._array.ndim == 1:
+                    # Inner product
+                    result.node_id = dag.create_node(parents_id=[self.node_id, other.node_id], operation=operations.InnerProduct(self._array, other._array), result=result)
+                else:
                     result.node_id = dag.create_node(parents_id=[self.node_id, other.node_id], operation=operations.MatMul(self._array, other._array), result=result)
             return result
         else:
