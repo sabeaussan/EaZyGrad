@@ -8,22 +8,28 @@ class Linear(Module):
 	def __init__(self, n_in, n_out, bias=True, requires_grad=True):
 		self.n_in = n_in
 		self.n_out = n_out
-		self.out = None
+		self.buffers = [None] * 2
 		gain = np.float32(np.sqrt(1/self.n_in))
 		self.parameters = [ez.uniform(low=-gain, high=gain, shape=(n_in, n_out), requires_grad=requires_grad)]
 		if bias:
 			self.parameters.append(ez.uniform(low=-gain, high=gain, shape=(1, n_out), requires_grad=requires_grad))
 
-
-
-	# TODO : add a decorator to cache the output array and avoid creating a new one at each forward pass if the shape is the same
+	def _get_buffer_shape(self, x):
+		return x.shape[:-1]+(self.n_out,)
+	
+	# TODO : extend buffers instead of reallocating it if the size is not enough
 	def forward(self,x):
-		if self.out is None or self.out.shape[0] < x.shape[0]:
-			# TODO : extned out instead of reallocating it if the shape is smaller
-			self.out = np.empty((x.shape[0], self.n_out), dtype=np.float32)
-		y = x.matmul(self.parameters[0], out=self.out[:x.shape[0]]) #x@self.parameters[0]
+		if x.ndim == 1:
+			raise ValueError("Input should be a 2D array with shape (batch_size, n_in), got 1D array with shape {}".format(x.shape))
+		allocate_buffer = self.buffers[0] is None or self.buffers[0].shape[0] < x.shape[0]
+		if allocate_buffer:
+			buff_shape = self._get_buffer_shape(x)
+			self.buffers[0] = np.empty(buff_shape, dtype=x.dtype)
+		y = x.matmul(self.parameters[0], out=self.buffers[0][:x.shape[0]])
 		if len(self.parameters)>1:
-			y += self.parameters[1]
+			if allocate_buffer:
+				self.buffers[1] = np.empty(buff_shape, dtype=x.dtype)
+			y.__add__(self.parameters[1], out=None)
 		return y
 
 

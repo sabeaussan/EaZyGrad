@@ -36,15 +36,27 @@ class _Tensor:
             result.node_id = dag.create_node(parents_id=[self.node_id], operation=operations.Slice(self._array.shape, key), result=result)
         return result
 
-    def __add__(self, other):
+    def __add__(self, other, out=None):
         if check.is_scalar(other):
             requires_grad = self.requires_grad
-            result = _Tensor(self._array + other, requires_grad=requires_grad)
+            if out is not None:
+                # out is a numpy array (your buffer)print("Using out buffer for addition")
+                np.add(self._array, other, out=out)
+                result_arr = out
+            else:
+                result_arr = np.add(self._array, other)
+            result = _Tensor(result_arr, requires_grad=requires_grad)
             if requires_grad:
                 result.node_id = dag.create_node(parents_id=[self.node_id], operation=operations.Add(self._array, other), result=result)
         elif isinstance(other, _Tensor):
             requires_grad = self.requires_grad or other.requires_grad
-            result = _Tensor(self._array + other._array, requires_grad=requires_grad)
+            if out is not None:
+                print("Using out buffer for addition")
+                np.add(self._array, other._array, out=out)
+                result_arr = out
+            else:
+                result_arr = np.add(self._array, other._array)
+            result = _Tensor(result_arr, requires_grad=requires_grad)
             if requires_grad:
                 result.node_id = dag.create_node(parents_id=[self.node_id, other.node_id], operation=operations.Add(self._array.shape, other._array.shape), result=result)
         else:
@@ -74,6 +86,7 @@ class _Tensor:
 
     def __neg__(self):
         return self.__mul__(-1)
+    
 
     def __mul__(self, other):
         if check.is_scalar(other):
