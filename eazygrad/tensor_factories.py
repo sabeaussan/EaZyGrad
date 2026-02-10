@@ -4,13 +4,11 @@ from .utils import check
 from ._tensor import _Tensor
 
 # TODO : if other is a number then it may not require to store the array ?
-# TODO : redactor operations
 
 # TODO : à tester
 def from_numpy(array, requires_grad=False):
     # fast path to create tensor from numpy array without copy
     # /!\ Warning ! changes to the original array will be reflected in the tensor and vice versa
-    # TODO : Should keep the same dtype as the input array and memory if possible
     if not isinstance(array, np.ndarray):
         raise TypeError(f"Input should be a np.ndarray but got {type(array)}.")
 
@@ -20,9 +18,9 @@ def from_numpy(array, requires_grad=False):
     return new_tensor
 
 def tensor(array, requires_grad=True, dtype=None):
-    # TODO : add raise Warning if input array is numpy because of copy
-    # TODO : if node does not require grad, node is not in the graph ?
-    # TODO : should accept scalar as input and float64
+    if isinstance(array, np.ndarray):
+        raise RuntimeWarning("Instantiating tensor from numpy array copies the underlying buffer. For no-copy use from_numpy.")
+        array = array.copy()
     new_tensor = _Tensor(array=array, requires_grad=requires_grad, dtype=dtype)
     if requires_grad:
         new_tensor.node_id = dag.create_node(parents_id=[None], operation=None, result=new_tensor, is_leaf=True)

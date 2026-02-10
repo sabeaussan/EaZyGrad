@@ -7,8 +7,7 @@ import numba as nb
 import line_profiler
 
 # TODO : revoir les messages d'erreurs pour mieux indiquer ce qui devrai etre un tensor
-# TODO : define a common wrapper or higher order function to take care of scalar check and co
-# TODO : rajouter max et min
+# TODO : maybe define a common wrapper or higher order function to take care of scalar check and co
 
 def _validate_dim_arg(dim):
 	if not isinstance(dim, int):

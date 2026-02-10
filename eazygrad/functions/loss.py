@@ -5,8 +5,6 @@ from .._tensor import _Tensor
 from ..grad import operations, dag
 from .specials import logsumexp
 
-# TODO : checks for predicted and target dtype
-
 def mse_loss(predicted, target):
 	return ((predicted - target) ** 2).mean()
 

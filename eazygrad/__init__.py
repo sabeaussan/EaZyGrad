@@ -5,12 +5,8 @@ from ._tensor import _Tensor
 from . import nn
 from . import data
 from .optimizer import SGD
+
 # /!\ TODO : add equal func
-
-# TODO : add ez no grad
-# TODO : prevent type promotion
-# TODO : add profiling decorator
-
 # TODO : add more robust matmul tests
 
 class no_grad_ctx:

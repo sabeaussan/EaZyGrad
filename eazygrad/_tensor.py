@@ -40,7 +40,6 @@ class _Tensor:
         if check.is_scalar(other):
             requires_grad = self.requires_grad
             if out is not None:
-                # out is a numpy array (your buffer)print("Using out buffer for addition")
                 np.add(self._array, other, out=out)
                 result_arr = out
             else:
@@ -51,7 +50,6 @@ class _Tensor:
         elif isinstance(other, _Tensor):
             requires_grad = self.requires_grad or other.requires_grad
             if out is not None:
-                # print("Using out buffer for addition")
                 np.add(self._array, other._array, out=out)
                 result_arr = out
             else:
@@ -59,7 +57,6 @@ class _Tensor:
             result = _Tensor(result_arr, requires_grad=requires_grad)
             if requires_grad:
                 result.node_id = dag.create_node(parents_id=[self.node_id, other.node_id], operation=operations.Add(self._array.shape, other._array.shape), result=result)
-                # print("Creating node for addition : ", result.node_id)
         else:
             raise NotImplementedError
         return result
@@ -155,7 +152,7 @@ class _Tensor:
             requires_grad = self.requires_grad or other.requires_grad
             # Numpy handles all the broadcasting rules for matmul and different shape cases
             if out is not None:
-                # out is a numpy array (your buffer)
+                # out is a numpy array 
                 np.matmul(self._array, other._array, out=out)
                 result_arr = out
             else:
@@ -176,7 +173,8 @@ class _Tensor:
         return self.matmul(other)
 
     def reshape(self, *shape):
-        # TODO : does it copy the array ?
+        # Return a view of the input array with given shape
+        # Share the same data buffer as the original Tensor
         result = _Tensor(self._array.reshape(shape), requires_grad=self.requires_grad)
         if self.requires_grad:
             result.node_id = dag.create_node(parents_id=[self.node_id], operation=operations.Reshape(self._array.shape), result=result)
@@ -291,13 +289,15 @@ class _Tensor:
             )
         return result
     
+    # TODO : à tester
     def detach(self):
-        # TODO : if node does not require grad, node is not in the graph ?
+        if not self.requires_grad or not self.node_id:
+            raise RuntimeError("Can't detach a tensor from the graph, it does not requires grad or is not part of the graph.")
         return _Tensor(self._array.copy(), requires_grad=False)
 
     def backward(self, vector = None, retain_graph = False):
-        # TODO : vector is numpy array, why ?
-        # TODO : vector and array should not have the same shape ?
+        # vector is the gradient the gradient of the differentiated function w.r.t. self
+        # Expect a numpy array of same shape and dtype
         if vector is None and not np.prod(self._array.shape) == 1:
             raise RuntimeError("Can't compute  propagation if root _Tensor is not a scalar and no vector are provided")
         elif vector is not None and self._array.shape != vector.shape:
@@ -305,6 +305,11 @@ class _Tensor:
         elif vector is not None:
             if not isinstance(vector, np.ndarray):
                 raise TypeError("The vector passed to backward should be a numpy ndarray.")
+            # TODO : à tester
+            if vector.dtype != self.dtype:
+                raise RuntimeError(f"The dtype of vector should match self.dtype, got {vector.dtype} instead of {self.dtype}")
+            if vector.shape != self.shape:
+                raise RuntimeError(f"The shape of vector should match self.shape, got {vector.shape} instead of {self.shape}")
             self.grad = vector
         else:
             self.grad = None

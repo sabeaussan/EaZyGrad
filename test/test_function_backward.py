@@ -11,7 +11,6 @@ import test_utils
 @settings(deadline=1000)
 @given(array=test_utils.array_or_scalar_strategy)
 def test_logsumexp_backward(array):
-    # TODO : rajouter le test de keep dims
     ez = test_utils.make_tensor(array, requires_grad=True)
     t = torch.tensor(array, requires_grad=True)
     if t.ndim == 0:
