@@ -28,5 +28,6 @@ class SGD(Optimizer):
 
 	def step(self):
 		for p in self.parameters:
+			# print(p.shape)
 			self.set_writeable_flag(p._array)
 			p._array -= self.lr * p.grad 

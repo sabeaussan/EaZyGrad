@@ -70,8 +70,10 @@ class ComputationGraph:
 			current_node = self.node_map[current_node_id]
 			if not current_node.is_leaf:
 				grads_inputs = current_node.operation.backward(current_node.result.grad)
+				# print("current node id", current_node_id, "operation", current_node.operation)
 				parent_nodes_id = self.dag.get(current_node_id, [])
-				# Remove node from graph if not needed anymore
+				# print("parent nodes id", parent_nodes_id)
+				# Remove non-leaf node from graph if not needed anymore
 				if not retain_graph:
 					self.clear_node(current_node_id)
 				if parent_nodes_id:

@@ -51,7 +51,7 @@ class _Tensor:
         elif isinstance(other, _Tensor):
             requires_grad = self.requires_grad or other.requires_grad
             if out is not None:
-                print("Using out buffer for addition")
+                # print("Using out buffer for addition")
                 np.add(self._array, other._array, out=out)
                 result_arr = out
             else:
@@ -59,6 +59,7 @@ class _Tensor:
             result = _Tensor(result_arr, requires_grad=requires_grad)
             if requires_grad:
                 result.node_id = dag.create_node(parents_id=[self.node_id, other.node_id], operation=operations.Add(self._array.shape, other._array.shape), result=result)
+                # print("Creating node for addition : ", result.node_id)
         else:
             raise NotImplementedError
         return result
