@@ -29,7 +29,7 @@ class Linear(Module):
 		if len(self.parameters)>1:
 			if allocate_buffer:
 				self.buffers[1] = np.empty(buff_shape, dtype=x.dtype)
-			y.__add__(self.parameters[1], out=None)
+			y.__add__(self.parameters[1], out=self.buffers[1][:x.shape[0]])
 		return y
 
 

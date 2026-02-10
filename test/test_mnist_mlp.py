@@ -74,7 +74,7 @@ def _make_batch(dataset, start_idx, batch_size):
     return ez.from_numpy(x_np), ez.from_numpy(y_np), torch.from_numpy(x_np), torch.from_numpy(y_np)
 
 
-def main():
+def test_mlp():
     np.random.seed(SEED)
     torch.manual_seed(SEED)
 
@@ -89,6 +89,7 @@ def main():
 
     print("Training eazygrad and PyTorch with shared init, batches, and hyperparameters")
     for epoch in range(N_EPOCH):
+        print(epoch)
         start_idx = np.random.randint(len(dataset.data) - BATCH_SIZE)
         x_ez, y_ez, x_torch, y_torch = _make_batch(dataset, start_idx, BATCH_SIZE)
 
@@ -117,6 +118,4 @@ def main():
             )
             assert diff < 1e-5, f"Parameters diverged too much at epoch {epoch}"
 
-
-if __name__ == "__main__":
-    main()
+test_mlp()
