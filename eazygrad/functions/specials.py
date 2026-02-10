@@ -26,7 +26,7 @@ def _logsumexp_generic(f64_array, dim):
 @nb.njit(cache=True, fastmath=True, parallel=True)
 def _logsumexp_lastaxis(x2d):
     """
-    x2d: shape (N, K), contiguous C-order recommended.
+    x2d: shape (N, K), contiguous C-order recommended for speed.
     returns: shape (N,), logsumexp over axis=1
     """
     N, K = x2d.shape
@@ -59,7 +59,6 @@ def logsumexp(input, dim, keepdims=False):
 	if check.is_scalar(input):
 		raise TypeError("Expected a tensor")
 	elif isinstance(input, _Tensor):
-		# print("Computing logsumexp with input shape ", input.shape)
 		_validate_dim_arg(dim)
 		dtype = input.dtype
 		# Maybe type promotion for exp and sum
@@ -77,8 +76,6 @@ def logsumexp(input, dim, keepdims=False):
 			logsumexp = _logsumexp_generic(f64_array, dim)
 			if not keepdims:
 				logsumexp = logsumexp.squeeze(dim)
-		print(keepdims, input.shape)
-		print(logsumexp.shape)
 		requires_grad = input.requires_grad
 		# Recast to input dtype
 		result = _Tensor(logsumexp, requires_grad=requires_grad, dtype=dtype)
