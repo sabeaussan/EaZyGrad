@@ -12,6 +12,7 @@ from eazygrad.functions.specials import logsumexp as ez_logsumexp
 
 def run_eazygrad(x_np, dim, keepdims, steps):
     x = ez.from_numpy(x_np, requires_grad=False)
+    ez_logsumexp(x, dim=dim, keepdims=keepdims)
     start = time.perf_counter()
     for _ in range(steps):
         _ = ez_logsumexp(x, dim=dim, keepdims=keepdims)
@@ -40,21 +41,21 @@ def main():
     np.random.seed(args.seed)
     x_np = np.random.randn(*args.shape).astype(np.float32)
 
-    profiler = cProfile.Profile()
-    profiler.enable()
+    # profiler = cProfile.Profile()
+    # profiler.enable()
     ez_time = run_eazygrad(x_np, args.dim, args.keepdims, args.steps)
-    profiler.disable()
+    # profiler.disable()
 
-    print("EazyGrad cProfile")
-    pstats.Stats(profiler).sort_stats(args.sort).print_stats(args.top)
+    # print("EazyGrad cProfile")
+    # pstats.Stats(profiler).sort_stats(args.sort).print_stats(args.top)
 
-    profiler = cProfile.Profile()
-    profiler.enable()
+    # profiler = cProfile.Profile()
+    # profiler.enable()
     torch_time = run_torch(x_np, args.dim, args.keepdims, args.steps)
-    profiler.disable()
+    # profiler.disable()
 
-    print("PyTorch cProfile")
-    pstats.Stats(profiler).sort_stats(args.sort).print_stats(args.top)
+    # print("PyTorch cProfile")
+    # pstats.Stats(profiler).sort_stats(args.sort).print_stats(args.top)
 
     print("LogSumExp benchmark")
     print(f"shape={tuple(args.shape)} dim={args.dim} keepdims={args.keepdims} steps={args.steps}")
