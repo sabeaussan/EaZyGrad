@@ -86,6 +86,23 @@ def test_truediv_scalar(array, scalar):
     np.testing.assert_array_equal(b._array, array / scalar)
 
 
+@pytest.mark.parametrize(
+    "array, scalar",
+    [
+        (np.array([1.5, -2.0, 4.0], dtype=np.float32), 2),
+        (np.array([[0.0, -3.0], [8.0, 1.25]], dtype=np.float32), -0.5),
+    ],
+)
+def test_arithmetic_scalar_forward_edge_cases(array, scalar):
+    a = test_utils.make_tensor(array)
+
+    np.testing.assert_allclose((a + scalar)._array, array + scalar, rtol=1e-6, atol=1e-6)
+    np.testing.assert_allclose((a - scalar)._array, array - scalar, rtol=1e-6, atol=1e-6)
+    np.testing.assert_allclose((a * scalar)._array, array * scalar, rtol=1e-6, atol=1e-6)
+    if scalar != 0:
+        np.testing.assert_allclose((a / scalar)._array, array / scalar, rtol=1e-6, atol=1e-6)
+
+
 @given(arrays=test_utils.array_pair_broadcast_compat_strategy)
 def test_truediv_tensor(arrays):
     # avoid division by zero

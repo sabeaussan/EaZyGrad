@@ -81,6 +81,58 @@ def test_truediv_backward(arrays):
     np.testing.assert_allclose(b_ez.grad, b_t.grad.numpy(), rtol=5e-5, atol=5e-5)
 
 
+@given(array=test_utils.array_strategy, scalar=test_utils.scalar_strategy)
+def test_add_scalar_backward(array, scalar):
+    a_ez = test_utils.make_tensor(array)
+    a_t = torch.tensor(array, requires_grad=True)
+    r_ez = a_ez + scalar
+    r_t = a_t + scalar
+
+    grad_output = test_utils.random_grad(r_ez._array.shape)
+    r_ez.backward(grad_output)
+    r_t.backward(torch.tensor(grad_output))
+    np.testing.assert_allclose(a_ez.grad, a_t.grad.numpy(), rtol=5e-5, atol=5e-5)
+
+
+@given(array=test_utils.array_strategy, scalar=test_utils.scalar_strategy)
+def test_sub_scalar_backward(array, scalar):
+    a_ez = test_utils.make_tensor(array)
+    a_t = torch.tensor(array, requires_grad=True)
+    r_ez = a_ez - scalar
+    r_t = a_t - scalar
+
+    grad_output = test_utils.random_grad(r_ez._array.shape)
+    r_ez.backward(grad_output)
+    r_t.backward(torch.tensor(grad_output))
+    np.testing.assert_allclose(a_ez.grad, a_t.grad.numpy(), rtol=5e-5, atol=5e-5)
+
+
+@given(array=test_utils.array_strategy, scalar=test_utils.scalar_strategy)
+def test_mul_scalar_backward(array, scalar):
+    a_ez = test_utils.make_tensor(array)
+    a_t = torch.tensor(array, requires_grad=True)
+    r_ez = a_ez * scalar
+    r_t = a_t * scalar
+
+    grad_output = test_utils.random_grad(r_ez._array.shape)
+    r_ez.backward(grad_output)
+    r_t.backward(torch.tensor(grad_output))
+    np.testing.assert_allclose(a_ez.grad, a_t.grad.numpy(), rtol=5e-5, atol=5e-5)
+
+
+@given(array=test_utils.array_strategy, scalar=test_utils.scalar_strategy.filter(lambda s: s != 0))
+def test_div_scalar_backward(array, scalar):
+    a_ez = test_utils.make_tensor(array)
+    a_t = torch.tensor(array, requires_grad=True)
+    r_ez = a_ez / scalar
+    r_t = a_t / scalar
+
+    grad_output = test_utils.random_grad(r_ez._array.shape)
+    r_ez.backward(grad_output)
+    r_t.backward(torch.tensor(grad_output))
+    np.testing.assert_allclose(a_ez.grad, a_t.grad.numpy(), rtol=5e-5, atol=5e-5)
+
+
 @given(array=test_utils.array_strategy, exponent=st.integers(0, 5))
 def test_pow_backward(array, exponent):
     a_ez = test_utils.make_tensor(array)
