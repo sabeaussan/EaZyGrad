@@ -4,8 +4,8 @@ from .._tensor import _Tensor
 from ..grad import operations, dag
 from .math import exp
 import numba as nb
-import line_profiler
-
+# import line_profiler
+#
 # TODO : revoir les messages d'erreurs pour mieux indiquer ce qui devrai etre un tensor
 # TODO : maybe define a common wrapper or higher order function to take care of scalar check and co
 

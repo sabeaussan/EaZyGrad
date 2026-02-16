@@ -46,7 +46,7 @@ class _Tensor:
                 result_arr = np.add(self._array, other)
             result = _Tensor(result_arr, requires_grad=requires_grad)
             if requires_grad:
-                result.node_id = dag.create_node(parents_id=[self.node_id], operation=operations.Add(self._array, other), result=result)
+                result.node_id = dag.create_node(parents_id=[self.node_id], operation=operations.Add(self._array), result=result)
         elif isinstance(other, _Tensor):
             requires_grad = self.requires_grad or other.requires_grad
             if out is not None:
@@ -69,7 +69,7 @@ class _Tensor:
             requires_grad = self.requires_grad
             result = _Tensor(self._array - other, requires_grad=requires_grad)
             if requires_grad:
-                result.node_id = dag.create_node(parents_id=[self.node_id], operation=operations.Sub(self._array, other), result=result)
+                result.node_id = dag.create_node(parents_id=[self.node_id], operation=operations.Sub(self._array), result=result)
         elif isinstance(other, _Tensor):
             requires_grad = self.requires_grad or other.requires_grad
             result = _Tensor(self._array - other._array, requires_grad=requires_grad)

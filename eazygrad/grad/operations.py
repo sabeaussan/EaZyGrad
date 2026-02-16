@@ -1,5 +1,5 @@
 import numpy as np
-
+from ..utils import check
 # Return always (grad,) because otherwise iterate over multiple of the grad if it is a list
 
 # Primitive operations operating on Tensor. Define a single node in the computation graph
@@ -27,7 +27,6 @@ __all__ = [
     "ExpandDims",
     "Squeeze",
     "SwapDims",
-    "Pad",
 ]
 
 
@@ -52,26 +51,52 @@ class Operation:
 		return self.__class__.__name__
 
 # Bizarre Add et Sub en terme de args
+# Pas sur de la fiabilité
 class Add(Operation):
 
 	def backward(self, grad_output):
+		# One of the operands might be a scalar which does not need grad
+		# so we need to check wether we return one or two grads
+		grad_inputs = []
 		if grad_output is None :
-			return (np.ones(self.context[0], dtype=self.context[0].dtype), np.ones(self.context[1], dtype=self.context[0].dtype))
-		return (grad_output, grad_output)
+			grad_inputs.append(np.ones(self.context[0], dtype=self.context[0].dtype))
+			if len(self.context) > 1:
+				grad_inputs.append(np.ones(self.context[1], dtype=self.context[0].dtype))
+			return tuple(grad_inputs)
+		grad_inputs.append(grad_output)
+		if len(self.context) > 1:
+			grad_inputs.append(grad_output)
+		return tuple(grad_inputs)
 
 class Sub(Operation):
 
 	def backward(self, grad_output):
+		# One of the operands might be a scalar which does not need grad
+		# so we need to check wether we return one or two grads
+		grad_inputs = []
 		if grad_output is None :
-			return (np.ones(self.context[0], dtype=self.context[0].dtype), -np.ones(self.context[1], dtype=self.context[0].dtype))
-		return (grad_output, -grad_output)
+			grad_inputs.append(np.ones(self.context[0], dtype=self.context[0].dtype))
+			if len(self.context) > 1:
+				grad_inputs.append(-np.ones(self.context[1], dtype=self.context[0].dtype))
+			return tuple(grad_inputs)
+		grad_inputs.append(grad_output)
+		if len(self.context) > 1:
+			grad_inputs.append(-grad_output)
+		return tuple(grad_inputs)
 
 class Mul(Operation):
 
 	def backward(self, grad_output):
+		# One of the operands might be a scalar which does not need grad
+		# so we need to check wether we return one or two grads
+		grad_inputs = [self.context[1]]
+		if len(self.context) > 1:
+			grad_inputs.append(self.context[0])	
 		if grad_output is None :
-			return (self.context[1] * np.ones_like(self.context[1], dtype=self.context[0].dtype), self.context[0]* np.ones_like(self.context[0], dtype=self.context[0].dtype))
-		return (self.context[1] * grad_output, self.context[0] * grad_output)
+			grad_inputs = map(lambda x : x*np.ones_like(x, dtype=x.dtype), grad_inputs)
+			return tuple(grad_inputs)
+		grad_inputs = map(lambda x : x*grad_output, grad_inputs)
+		return tuple(grad_inputs)
 
 class Div(Operation):
 
@@ -79,16 +104,28 @@ class Div(Operation):
 		# Type promotion for division
 		dtype = self.context[0].dtype
 		x_64 = self.context[0].astype(np.float64, copy=False)
-		y_64 = self.context[1].astype(np.float64, copy=False)
+		y_64 = self.context[1]
 
-		# Possibly recast gradients to original dtype
-		# if dtype is float64, no op
-		grad_x = (1 / y_64).astype(dtype, copy=False)
-		grad_y = (- x_64 / (y_64 ** 2)).astype(dtype, copy=False)
+		if not check.is_scalar(self.context[1]):
+			y_64 = y_64.astype(np.float64, copy=False)
+			# Possibly recast gradients to original dtype
+			# if dtype is float64, no op
+			grad_x = (1 / y_64).astype(dtype, copy=False)
+		else:
+			grad_x = (1 / y_64)
+
+		grad_inputs = [grad_x]
+		# One of the operands might be a scalar which does not need grad
+		# so we need to check wether we return one or two grads
+		if len(self.context) > 1:
+			grad_y = (- x_64 / (y_64 ** 2)).astype(dtype, copy=False)
+			grad_inputs.append(grad_y)
 
 		if grad_output is None :
-			return (grad_x, grad_y)
-		return (grad_x * grad_output, grad_y * grad_output)
+			return tuple(grad_inputs)
+		
+		grad_inputs = map(lambda x : x*grad_output, grad_inputs)
+		return tuple(grad_inputs)
 
 class RDiv(Operation):
 
@@ -313,22 +350,3 @@ class Copy(Operation):
 			return (grad_output.astype(dtype, copy=False),)
 		else:
 			return (grad_output,)
-
-class Pad(Operation):
-
-	def backward(self, grad_output):
-		if isinstance(self.context[0], int):
-			# 1-d padding
-			if self.context[1]==0:
-				return (grad_output[self.context[0]:None],)
-			else:	
-				return (grad_output[self.context[0]:-self.context[1]],)
-
-		# n-d padding
-		slices = []
-		for pad_dims in self.context: 
-			if pad_dims[1]==0:
-				slices.append(slice(pad_dims[0],None))
-			else:	
-				slices.append(slice(pad_dims[0],-pad_dims[1]))
-		return (grad_output[tuple(slices)],)
