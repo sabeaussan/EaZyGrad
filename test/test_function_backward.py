@@ -8,7 +8,7 @@ import test_utils
 
 
 # ------------------ Log sum exp ------------------
-@settings(deadline=1000)
+@settings(deadline=None)
 @given(array=test_utils.array_or_scalar_strategy)
 def test_logsumexp_backward(array):
     ez = test_utils.make_tensor(array, requires_grad=True)

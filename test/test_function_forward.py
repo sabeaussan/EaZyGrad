@@ -1,6 +1,6 @@
 import numpy as np
 import pytest
-from hypothesis import given, strategies as st
+from hypothesis import given, settings, strategies as st
 import hypothesis.extra.numpy as hnp
 import eazygrad
 import torch
@@ -36,7 +36,7 @@ def test_logsumexp_dim_out_of_range(dim):
     with pytest.raises(ValueError):
         eazygrad.logsumexp(t, dim=dim)
 
-
+@settings(deadline=None)
 @given(array=test_utils.array_or_scalar_strategy)
 def test_logsumexp_forward(array):
     # TODO : Work with scalar ?

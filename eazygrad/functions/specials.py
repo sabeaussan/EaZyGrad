@@ -24,10 +24,6 @@ def _logsumexp_generic(f64_array, dim):
 
 @nb.njit(cache=True, fastmath=True, parallel=True)
 def _fast_logsumexp(x2d):
-    """
-    x2d: shape (N, K), contiguous C-order recommended for speed.
-    returns: shape (N,), logsumexp over axis=1
-    """
     N, K = x2d.shape
     out = np.empty(N, dtype=np.float64)
 
@@ -58,24 +54,53 @@ def logsumexp(input, dim, keepdims=False):
 	if check.is_scalar(input):
 		raise TypeError("Expected a tensor")
 	elif isinstance(input, _Tensor):
+		ndim = input.ndim
+		requires_grad = input.requires_grad
+		if ndim == 0:
+			result = _Tensor(input.numpy(), requires_grad=requires_grad)
+			if requires_grad : 
+				result.node_id = dag.create_node(
+					parents_id = [input.node_id], 
+					operation = operations.Copy(input.dtype), 
+					result = result
+				)
+			return result
+			
+		# if ndim > 3:
+		# 	raise NotImplementedError("Logsumexp for tensor with more than 3 dimensions is not supported.")
+
 		_validate_dim_arg(dim)
 		dtype = input.dtype
+		reshaped = False
 		# Maybe type promotion for exp and sum
 		f64_array = input._array.astype(np.float64, copy=False)
-		fast_path = input.ndim == 2 and (dim == 1 or dim == -1) and f64_array.flags.c_contiguous
-		if fast_path:
-			# Fast path for logsumexp over last axis of 2d array, which is common in softmax and cross entropy loss
-			# Not generic, need some work
-			logsumexp = _fast_logsumexp(f64_array)
-			if keepdims and logsumexp.ndim < input.ndim:
-				logsumexp = np.expand_dims(logsumexp, axis=dim)
+		
+
+		if dim != -1 or dim != ndim-1:
+			f64_array = np.moveaxis(f64_array, dim, -1)
+			new_shape = f64_array.shape
+			axis_moved = True
+
+		if ndim > 2:
+			f64_array = f64_array.reshape(-1, f64_array.shape[-1])
+			reshaped = True
+
+
+		if not f64_array.flags.c_contiguous:
+			f64_array = np.ascontiguousarray(f64_array)
+
+		if ndim==1:
+			logsumexp = _fast_logsumexp(np.expand_dims(f64_array, axis=0))
 		else:
-			# TODO : need to move dim axis to last and reshape to 2d
-			# to replace this slow implementation
-			logsumexp = _logsumexp_generic(f64_array, dim)
-			if not keepdims:
-				logsumexp = logsumexp.squeeze(dim)
-		requires_grad = input.requires_grad
+			logsumexp = _fast_logsumexp(f64_array)
+
+		if reshaped:
+			logsumexp = logsumexp.reshape(new_shape[:-1])
+
+		if keepdims and logsumexp.ndim < ndim:
+			logsumexp = np.expand_dims(logsumexp, axis=dim)
+
+		
 		# Recast to input dtype
 		result = _Tensor(logsumexp, requires_grad=requires_grad, dtype=dtype)
 		if requires_grad : 
