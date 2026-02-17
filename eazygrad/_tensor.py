@@ -2,7 +2,6 @@ import numpy as np
 from .grad import operations, dag
 from .utils import check
 
-
 class _Tensor:
 
     def __init__(self, array, requires_grad, dtype=None):
@@ -142,6 +141,8 @@ class _Tensor:
         else:
             raise NotImplementedError
         return result
+    
+    
 
     def matmul(self, other, out=None):
         if check.is_scalar(other):

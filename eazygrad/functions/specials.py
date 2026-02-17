@@ -23,7 +23,7 @@ def _logsumexp_generic(f64_array, dim):
 	return logsumexp
 
 @nb.njit(cache=True, fastmath=True, parallel=True)
-def _logsumexp_lastaxis(x2d):
+def _fast_logsumexp(x2d):
     """
     x2d: shape (N, K), contiguous C-order recommended for speed.
     returns: shape (N,), logsumexp over axis=1
@@ -66,7 +66,7 @@ def logsumexp(input, dim, keepdims=False):
 		if fast_path:
 			# Fast path for logsumexp over last axis of 2d array, which is common in softmax and cross entropy loss
 			# Not generic, need some work
-			logsumexp = _logsumexp_lastaxis(f64_array)
+			logsumexp = _fast_logsumexp(f64_array)
 			if keepdims and logsumexp.ndim < input.ndim:
 				logsumexp = np.expand_dims(logsumexp, axis=dim)
 		else:

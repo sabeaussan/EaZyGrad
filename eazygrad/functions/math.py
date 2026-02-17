@@ -3,6 +3,8 @@ from ..utils import check
 from .._tensor import _Tensor
 from ..grad import operations, dag
 
+
+
 def exp(input):
 	if check.is_scalar(input):
 		raise TypeError("Expected a tensor")

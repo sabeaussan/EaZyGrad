@@ -18,9 +18,9 @@ def from_numpy(array, requires_grad=False):
     return new_tensor
 
 def tensor(array, requires_grad=True, dtype=None):
-    if isinstance(array, np.ndarray):
-        raise RuntimeWarning("Instantiating tensor from numpy array copies the underlying buffer. For no-copy use from_numpy.")
-        array = array.copy()
+    # if isinstance(array, np.ndarray):
+    #     raise RuntimeWarning("Instantiating tensor from numpy array copies the underlying buffer. For no-copy use from_numpy.")
+    #     array = array.copy()
     new_tensor = _Tensor(array=array, requires_grad=requires_grad, dtype=dtype)
     if requires_grad:
         new_tensor.node_id = dag.create_node(parents_id=[None], operation=None, result=new_tensor, is_leaf=True)

@@ -10,15 +10,15 @@ import torch.nn as tnn
 import eazygrad as ez
 from eazygrad.nn.linear import Linear
 
-np.show_config()
-print(torch.__config__.show())
+# np.show_config()
+# print(torch.__config__.show())
 
 def run_eazygrad(batch_size, in_dim, out_dim, steps, backward, seed):
     np.random.seed(seed)
 
     layer = Linear(n_in=in_dim, n_out=out_dim)
     x = ez.randn((batch_size, in_dim), requires_grad=backward)
-
+    y = layer(x)
     start = time.perf_counter()
     for _ in range(steps):
         x+=1
