@@ -64,6 +64,7 @@ def test_log_softmax_backward_autograd(array):
         dim = random.randint(0, x.ndim - 1)
 
     y = eazygrad.log_softmax(x, dim=dim)
+    print(x.dtype, y.dtype)
 
     t = torch.tensor(array, requires_grad=True)
     y_torch = torch.log_softmax(t, dim=dim)

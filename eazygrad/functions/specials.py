@@ -65,34 +65,32 @@ def logsumexp(input, dim, keepdims=False):
 					result = result
 				)
 			return result
-			
-		# if ndim > 3:
-		# 	raise NotImplementedError("Logsumexp for tensor with more than 3 dimensions is not supported.")
 
 		_validate_dim_arg(dim)
 		dtype = input.dtype
 		reshaped = False
 		# Maybe type promotion for exp and sum
 		f64_array = input._array.astype(np.float64, copy=False)
-		
+		logsumexp = f64_array
 
 		if dim != -1 or dim != ndim-1:
-			f64_array = np.moveaxis(f64_array, dim, -1)
-			new_shape = f64_array.shape
+			logsumexp = np.moveaxis(logsumexp, dim, -1)
+			new_shape = logsumexp.shape
 			axis_moved = True
 
 		if ndim > 2:
-			f64_array = f64_array.reshape(-1, f64_array.shape[-1])
+			logsumexp = logsumexp.reshape(-1, logsumexp.shape[-1])
 			reshaped = True
 
 
-		if not f64_array.flags.c_contiguous:
-			f64_array = np.ascontiguousarray(f64_array)
+		if not logsumexp.flags.c_contiguous:
+			logsumexp = np.ascontiguousarray(logsumexp)
 
 		if ndim==1:
-			logsumexp = _fast_logsumexp(np.expand_dims(f64_array, axis=0))
+			# Convert to 2d array
+			logsumexp = _fast_logsumexp(np.expand_dims(logsumexp, axis=0))
 		else:
-			logsumexp = _fast_logsumexp(f64_array)
+			logsumexp = _fast_logsumexp(logsumexp)
 
 		if reshaped:
 			logsumexp = logsumexp.reshape(new_shape[:-1])
@@ -115,6 +113,7 @@ def logsumexp(input, dim, keepdims=False):
 
 
 def softmax(input, dim):
+	# TODO : force un cast en float32 pour le retour ...
 	if check.is_scalar(input):
 		raise TypeError("Expected a tensor")
 	elif isinstance(input, _Tensor):
@@ -128,13 +127,14 @@ def softmax(input, dim):
 	return result
 
 def log_softmax(input, dim):
+	# TODO : force un cast en float32 pour le retour ...
 	if check.is_scalar(input):
 		raise TypeError("Expected a tensor")
 	elif isinstance(input, _Tensor):
 		_validate_dim_arg(dim)
 		# Type promotion for numerical stability
 		input = input.double()
-		result = input - logsumexp(input, dim, keepdims=True).float()
+		result = (input - logsumexp(input, dim, keepdims=True)).float()
 	else :
 		raise NotImplementedError
 	return result
