@@ -118,10 +118,11 @@ def softmax(input, dim):
 		raise TypeError("Expected a tensor")
 	elif isinstance(input, _Tensor):
 		_validate_dim_arg(dim)
+		dtype = input.dtype
 		# Type promotion for numerical stability
 		input = input.double()
 		shifted_input = input - logsumexp(input, dim, keepdims=True)
-		result = exp(shifted_input).float()
+		result = exp(shifted_input).to(dtype)
 	else :
 		raise NotImplementedError
 	return result
@@ -132,9 +133,10 @@ def log_softmax(input, dim):
 		raise TypeError("Expected a tensor")
 	elif isinstance(input, _Tensor):
 		_validate_dim_arg(dim)
+		dtype = input.dtype
 		# Type promotion for numerical stability
-		input = input.double()
-		result = (input - logsumexp(input, dim, keepdims=True)).float()
+		input = input.to(np.float64)
+		result = (input - logsumexp(input, dim, keepdims=True)).to(dtype)
 	else :
 		raise NotImplementedError
 	return result

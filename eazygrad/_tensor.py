@@ -289,6 +289,23 @@ class _Tensor:
                 result=result
             )
         return result
+
+    def to(self, dtype):
+        # no-op
+        if dtype == self.dtype:
+            return self
+        
+        match dtype:
+            case np.float32:
+                return self.float()
+            case np.float64:
+                return self.double()
+            case np.int32:
+                return self.int()
+            case np.int64:
+                return self.long()
+            case _:
+                raise NotImplementedError(f"Unsupported dtype : {dtype}")
     
     # TODO : à tester
     def detach(self):
