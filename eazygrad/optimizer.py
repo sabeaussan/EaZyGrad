@@ -46,7 +46,7 @@ class SGD(Optimizer):
 
 	def step(self):
 		for idx, p in enumerate(self.parameters):
-			if not p.grad:
+			if p.grad is None:
 				continue
 			self.set_writeable_flag(p._array)
 			p._array -= self.lr * self._get_grad(p.grad, idx) 

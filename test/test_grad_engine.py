@@ -37,6 +37,7 @@ def sum_op(tensor):
     return tensor.sum(dim=dims, keepdims=keep_dims)
 
 def safe_divide(tensor1, tensor2):
+    # print(tensor2.requires_grad)
     arr = tensor2.detach().numpy()
     if np.any(arr<=0.00001):
         # Add a small epsilon to avoid division by close to 0

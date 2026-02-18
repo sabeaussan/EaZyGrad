@@ -292,7 +292,8 @@ class _Tensor:
     
     # TODO : à tester
     def detach(self):
-        if not self.requires_grad or not self.node_id:
+        # print(self.node_id)
+        if not self.requires_grad or self.node_id is None:
             raise RuntimeError("Can't detach a tensor from the graph, it does not requires grad or is not part of the graph.")
         return _Tensor(self._array.copy(), requires_grad=False)
 

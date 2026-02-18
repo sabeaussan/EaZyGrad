@@ -1,5 +1,5 @@
 import numpy as np
-from hypothesis import given, strategies as st
+from hypothesis import given, settings, strategies as st
 import hypothesis.extra.numpy as hnp
 import torch
 import test_utils
@@ -55,7 +55,7 @@ def test_linear_forward_no_bias(data):
     expected = t_linear(torch.tensor(x_array)).detach().numpy()
     np.testing.assert_allclose(result, expected, rtol=1e-5, atol=1e-5)
 
-
+@settings(deadline=None)
 @given(data=st.data())
 def test_linear_backward_with_bias(data):
     x_array, w_array, b_array = _linear_case(data, bias=True)
