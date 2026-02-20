@@ -4,7 +4,7 @@ from .utils import check
 from ._tensor import _Tensor
 from . import nn
 from . import data
-from .optimizer import SGD
+from .optimizer import SGD, Adam, AdamW
 
 # /!\ TODO : add equal func
 # TODO : add more robust matmul tests

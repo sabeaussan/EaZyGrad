@@ -3,7 +3,6 @@ from .grad import dag
 from .utils import check
 from ._tensor import _Tensor
 
-# TODO : if other is a number then it may not require to store the array ?
 
 # TODO : à tester
 def from_numpy(array, requires_grad=False):

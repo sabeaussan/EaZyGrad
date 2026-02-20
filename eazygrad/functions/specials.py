@@ -13,7 +13,7 @@ def _validate_dim_arg(dim):
 	if not isinstance(dim, int):
 		raise ValueError("Dim argument should be an integer, got {}".format(type(dim)))
 
-# TODO : generic but temporary implementation of logsumexp
+# generic but temporary implementation of logsumexp
 # Slow, will be replaced with a numba friendly version
 def _logsumexp_generic(f64_array, dim):
 	M = f64_array.max(axis=dim, keepdims=True)
@@ -113,7 +113,6 @@ def logsumexp(input, dim, keepdims=False):
 
 
 def softmax(input, dim):
-	# TODO : force un cast en float32 pour le retour ...
 	if check.is_scalar(input):
 		raise TypeError("Expected a tensor")
 	elif isinstance(input, _Tensor):
@@ -128,7 +127,6 @@ def softmax(input, dim):
 	return result
 
 def log_softmax(input, dim):
-	# TODO : force un cast en float32 pour le retour ...
 	if check.is_scalar(input):
 		raise TypeError("Expected a tensor")
 	elif isinstance(input, _Tensor):

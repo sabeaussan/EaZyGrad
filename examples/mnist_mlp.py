@@ -67,7 +67,7 @@ def main():
     test_loader = Dataloader(test_dataset, batch_size=BATCH_SIZE, shuffle=False, drop_last=False)
 
     model = Model(in_dim=INPUT_DIM, out_dim=OUTPUT_DIM, h_dim=HIDDEN_DIM, n_layer=N_LAYER)
-    optimizer = ez.SGD(model.net.parameters(), lr=LR)
+    optimizer = ez.AdamW(model.net.parameters(), lr=LR)
 
     print("Training EaZyGrad MLP on MNIST")
     for epoch in range(N_EPOCH):

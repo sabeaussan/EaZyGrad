@@ -1,6 +1,4 @@
 import numpy as np
-import abc
-
 
 class Optimizer:
 
@@ -17,8 +15,15 @@ class Optimizer:
 		# Allow in-place op
 		array.flags.writeable=True
 
-	def step(self):
+	def _get_step_size(self, grad, idx):
 		raise NotImplementedError
+
+	def step(self):
+		for idx, p in enumerate(self.parameters):
+			if p.grad is None:
+				continue
+			self.set_writeable_flag(p._array)
+			p._array -= self.lr * self._get_step_size(p.grad, idx) 
 
 
 class SGD(Optimizer):
@@ -31,7 +36,7 @@ class SGD(Optimizer):
 			self.buffer = [None] * len(parameters)
 			self.first_iter = True
 
-	def _get_grad(self, grad, idx):
+	def _get_step_size(self, grad, idx):
 		if self.momentum > 0:
 			if self.first_iter:
 				self.buffer[idx] = grad.copy()
@@ -43,10 +48,37 @@ class SGD(Optimizer):
 			# simple SGD
 			return grad
 		
+# TODO : à tester
+class Adam(Optimizer):
 
-	def step(self):
-		for idx, p in enumerate(self.parameters):
-			if p.grad is None:
-				continue
-			self.set_writeable_flag(p._array)
-			p._array -= self.lr * self._get_grad(p.grad, idx) 
+	def __init__(self, parameters, lr = 1e-3, betas=(0.9, 0.99), eps=1e-8):
+		super().__init__(parameters, lr)
+		self.betas = betas
+		self.eps = eps
+		self.running_mean = [np.float32(0.0)] * len(parameters)
+		self.running_variance = [np.float32(0.0)] * len(parameters)
+		self.t_steps = 1
+
+	def _get_step_size(self, grad, idx):
+		self.running_mean[idx] = self.betas[0]*self.running_mean[idx] + (1-self.betas[0])*grad
+		self.running_variance[idx] = self.betas[1]*self.running_variance[idx] + (1-self.betas[1])*(grad**2)
+		# bias correction
+		self.running_mean[idx] = self.running_mean[idx]/(1-self.betas[0]**self.t_steps)
+		self.running_variance[idx] = self.running_variance[idx]/(1-self.betas[1]**self.t_steps)
+		self.t_steps += 1
+		return self.running_mean[idx]/(np.sqrt(self.running_variance[idx])+self.eps)
+
+# TODO : à tester
+class AdamW(Adam):
+
+	def __init__(self, parameters, lr = 1e-3, betas=(0.9, 0.99), eps=1e-8, weight_decay=0.01):
+		super().__init__(parameters, lr, betas, eps)
+		self.weight_decay = weight_decay
+
+	def _get_step_size(self, grad, idx):
+		# decay step
+		self.parameters[idx]._array = self.parameters[idx]._array - self.lr*self.weight_decay*self.parameters[idx]._array
+		return super()._get_step_size(grad, idx)
+
+
+	
