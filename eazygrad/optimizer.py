@@ -53,17 +53,21 @@ class Adam(Optimizer):
 		self.betas = betas
 		self.eps = eps
 		self.running_mean = [np.float32(0.0)] * len(parameters)
-		self.running_variance = [np.float32(0.0)] * len(parameters)
-		self.t_steps = 1
+		self.running_var = [np.float32(0.0)] * len(parameters)
+		self.t_steps = [1] * len(parameters)
 
 	def _get_step_size(self, grad, idx):
 		self.running_mean[idx] = self.betas[0]*self.running_mean[idx] + (1-self.betas[0])*grad
-		self.running_variance[idx] = self.betas[1]*self.running_variance[idx] + (1-self.betas[1])*(grad**2)
+		print("m_ : ",self.running_mean[idx])
+		self.running_var[idx] = self.betas[1]*self.running_var[idx] + (1-self.betas[1])*(grad**2)
+		print("v_ : ",self.running_var[idx])
 		# bias correction
-		self.running_mean[idx] = self.running_mean[idx]/(1-self.betas[0]**self.t_steps)
-		self.running_variance[idx] = self.running_variance[idx]/(1-self.betas[1]**self.t_steps)
-		self.t_steps += 1
-		return self.running_mean[idx]/(np.sqrt(self.running_variance[idx])+self.eps)
+		corrected_running_mean = self.running_mean[idx]/(1-self.betas[0]**self.t_steps[idx])
+		corrected_running_var = self.running_var[idx]/(1-self.betas[1]**self.t_steps[idx])
+		print("m : ",self.running_mean[idx])
+		print("v : ",self.running_var[idx])
+		self.t_steps[idx] += 1
+		return corrected_running_mean/(np.sqrt(corrected_running_var)+self.eps)
 
 # TODO : à tester
 class AdamW(Adam):
