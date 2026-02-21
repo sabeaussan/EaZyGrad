@@ -9,10 +9,13 @@ authors = [
     {name = "Samuel Beaussant", email = "sambeaussant@gmail.com"},
 ]
 description = "Simple Deep Learning library for educational purposes"
-requires-python = ">=3.7, <3.12"
+requires-python = ">=3.10, <3.14"
 dependencies = [
-    "numpy>=1.24.1",
+    "numpy>=2.3.0",
+    "numba>=0.63.1",
+    "graphviz"
 ]
 
 [project.optional-dependencies]
+data = ["pillow", "tqdm"]
 dev = ["torch", "pytest", "hypothesis"]
