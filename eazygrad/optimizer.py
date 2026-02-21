@@ -34,19 +34,16 @@ class SGD(Optimizer):
 		self.dampening_bar = 1-dampening
 		if momentum > 0:
 			self.buffer = [None] * len(parameters)
-			self.first_iter = True
 
 	def _get_step_size(self, grad, idx):
 		if self.momentum > 0:
-			if self.first_iter:
+			if self.buffer[idx] is None:
 				self.buffer[idx] = grad.copy()
 			else:
 				self.buffer[idx] *= self.momentum
 				self.buffer[idx] += (self.dampening_bar*grad)
-			return self.buffer[idx]
-		else:
-			# simple SGD
-			return grad
+			grad = self.buffer[idx]
+		return grad
 		
 # TODO : à tester
 class Adam(Optimizer):
