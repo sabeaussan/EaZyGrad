@@ -115,9 +115,6 @@ def test_adam_matches_torch_multi_step(data, lr):
     grads_per_step = [grads, grads_step2, grads_step3]
     betas = (0.9, 0.99)
     eps = 1e-8
-    print("lr : ",lr)
-    print("params : ",params)
-    print("grads : ",grads)
 
     ez_final = _run_steps_eazygrad(
         params, grads_per_step, Adam, lr=lr, betas=betas, eps=eps
@@ -125,9 +122,6 @@ def test_adam_matches_torch_multi_step(data, lr):
     torch_final = _run_steps_torch(
         params, grads_per_step, torch.optim.Adam, lr=lr, betas=betas, eps=eps
     )
-    print("ez_final : ",ez_final)
-    print("torch_final : ",torch_final)
-    print("="*50)
 
     for ez_p, t_p in zip(ez_final, torch_final):
         np.testing.assert_allclose(ez_p, t_p, rtol=5e-5, atol=5e-5)

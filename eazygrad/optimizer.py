@@ -23,7 +23,11 @@ class Optimizer:
 			if p.grad is None:
 				continue
 			self.set_writeable_flag(p._array)
-			p._array -= self.lr * self._get_step_size(p.grad, idx) 
+			# Needs to compute step size first
+			# because AdamW decay parameters before
+			# so in-place modification of p is wrong otherwise
+			step_size = self._get_step_size(p.grad, idx) 
+			p._array -= self.lr * step_size
 
 
 class SGD(Optimizer):
@@ -58,14 +62,10 @@ class Adam(Optimizer):
 
 	def _get_step_size(self, grad, idx):
 		self.running_mean[idx] = self.betas[0]*self.running_mean[idx] + (1-self.betas[0])*grad
-		print("m_ : ",self.running_mean[idx])
 		self.running_var[idx] = self.betas[1]*self.running_var[idx] + (1-self.betas[1])*(grad**2)
-		print("v_ : ",self.running_var[idx])
 		# bias correction
 		corrected_running_mean = self.running_mean[idx]/(1-self.betas[0]**self.t_steps[idx])
 		corrected_running_var = self.running_var[idx]/(1-self.betas[1]**self.t_steps[idx])
-		print("m : ",self.running_mean[idx])
-		print("v : ",self.running_var[idx])
 		self.t_steps[idx] += 1
 		return corrected_running_mean/(np.sqrt(corrected_running_var)+self.eps)
 
