@@ -398,6 +398,72 @@ def test_no_grad_decorator_restores_state_on_exception():
         _reset_dag_state(prev_state)
 
 
+# ============================= Tests for detach ============================= #
+
+@pytest.mark.parametrize("requires_grad", [True, False])
+def test_detach_matches_torch_requires_grad_flag(requires_grad):
+    arr = np.array([[1.0, -2.0], [3.0, 4.0]], dtype=np.float32)
+
+    ez_t = eazygrad.tensor(arr, requires_grad=requires_grad)
+    torch_t = torch.tensor(arr, requires_grad=requires_grad)
+
+    ez_detached = ez_t.detach()
+    torch_detached = torch_t.detach()
+
+    assert ez_detached.requires_grad is torch_detached.requires_grad
+    np.testing.assert_allclose(ez_detached.numpy(), torch_detached.detach().numpy(), rtol=1e-6, atol=1e-6)
+
+
+def test_detach_matches_torch_for_non_leaf_tensor():
+    arr = np.array([1.0, 2.0, 3.0], dtype=np.float32)
+    ez_t = eazygrad.tensor(arr, requires_grad=True)
+    torch_t = torch.tensor(arr, requires_grad=True)
+
+    ez_non_leaf = ez_t * 3.0
+    torch_non_leaf = torch_t * 3.0
+
+    ez_detached = ez_non_leaf.detach()
+    torch_detached = torch_non_leaf.detach()
+
+    assert ez_detached.requires_grad is torch_detached.requires_grad
+    np.testing.assert_allclose(ez_detached.numpy(), torch_detached.detach().numpy(), rtol=1e-6, atol=1e-6)
+
+
+def test_detach_matches_torch_storage_sharing_behavior():
+    arr = np.array([1.0, 2.0, 3.0], dtype=np.float32)
+    ez_t = eazygrad.tensor(arr, requires_grad=True)
+    torch_t = torch.tensor(arr, requires_grad=True)
+
+    ez_detached = ez_t.detach()
+    torch_detached = torch_t.detach()
+
+    ez_detached[0] = 42.0
+    torch_detached[0] = 42.0
+
+    np.testing.assert_allclose(ez_t.numpy(), torch_t.detach().numpy(), rtol=1e-6, atol=1e-6)
+    np.testing.assert_allclose(ez_detached.numpy(), torch_detached.detach().numpy(), rtol=1e-6, atol=1e-6)
+
+
+def test_detach_breaks_grad_connection_like_torch():
+    arr = np.array([2.0, -1.0, 0.5], dtype=np.float32)
+    ez_t = eazygrad.tensor(arr, requires_grad=True)
+    torch_t = torch.tensor(arr, requires_grad=True)
+
+    ez_out = (ez_t * 2.0).detach()
+    torch_out = (torch_t * 2.0).detach()
+
+    assert ez_out.requires_grad is False
+    assert torch_out.requires_grad is False
+
+    with pytest.raises(Exception):
+        ez_out.backward(np.ones_like(arr, dtype=np.float32))
+    with pytest.raises(RuntimeError):
+        torch_out.backward(torch.ones_like(torch_t))
+
+    assert ez_t.grad is None
+    assert torch_t.grad is None
+
+
 # ============================= Tests for grad broadcast ============================= #
 
 @settings(suppress_health_check=[HealthCheck.function_scoped_fixture])
@@ -432,4 +498,3 @@ def test_backward_invalid_input(mock_dag, vector, array):
         a.backward(vector)
     print(excinfo)
     assert isinstance(excinfo.value, (RuntimeError, TypeError, AttributeError))
-

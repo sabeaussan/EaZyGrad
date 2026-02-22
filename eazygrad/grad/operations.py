@@ -4,8 +4,6 @@ from ..utils import check
 
 # Primitive operations operating on Tensor. Define a single node in the computation graph
 
-# TODO : check return dtypes, there is force cast to float32 no matter the original dtype
-
 __all__ = [
     "Operation",
     "Add",
@@ -190,8 +188,9 @@ class MatMul(Operation):
 class Sum(Operation):
 	def backward(self, grad_output):
 		dim, keepdims = self.context[1]
+		dtype = self.context[-1]
 		if grad_output is None :
-			return (np.ones(self.context[0], dtype=np.float32),)
+			return (np.ones(self.context[0], dtype=dtype),)
 		else :
 			# Check keepdims
 			if not keepdims:
@@ -201,8 +200,9 @@ class Sum(Operation):
 class Mean(Operation):
 	def backward(self, grad_output):
 		dim, keepdims = self.context[2]
+		dtype = self.context[-1]
 		if grad_output is None :
-			return (np.ones(self.context[0], dtype=np.float32)*self.context[1],)
+			return (np.ones(self.context[0], dtype=dtype)*self.context[1],)
 		else :
 			# Check keepdims
 			if not keepdims:

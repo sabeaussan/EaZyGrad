@@ -194,8 +194,10 @@ class _Tensor:
         )
         if requires_grad:
             # avoid native python casting to float64
+            # will be promoted to f64 if needed
             div_factor = np.float32(1 / np.prod([self.shape[ax] for ax in dim]))
-            result.node_id = dag.create_node(parents_id=[self.node_id], operation=operations.Mean(self._array.shape, div_factor, (dim, keepdim)), result=result)
+            dtype = result.dtype
+            result.node_id = dag.create_node(parents_id=[self.node_id], operation=operations.Mean(self._array.shape, div_factor, (dim, keepdim), dtype), result=result)
         return result
 
     def sum(self, dim = None, keepdims = False):
@@ -208,7 +210,8 @@ class _Tensor:
             requires_grad=requires_grad
         )
         if requires_grad:
-            result.node_id = dag.create_node(parents_id=[self.node_id], operation=operations.Sum(self._array.shape, (dim, keepdims)), result=result)
+            dtype = result.dtype
+            result.node_id = dag.create_node(parents_id=[self.node_id], operation=operations.Sum(self._array.shape, (dim, keepdims), dtype), result=result)
         return result
 
     @property
@@ -307,12 +310,8 @@ class _Tensor:
             case _:
                 raise NotImplementedError(f"Unsupported dtype : {dtype}")
     
-    # TODO : à tester
     def detach(self):
-        # print(self.node_id)
-        if not self.requires_grad or self.node_id is None:
-            raise RuntimeError("Can't detach a tensor from the graph, it does not requires grad or is not part of the graph.")
-        return _Tensor(self._array.copy(), requires_grad=False)
+        return _Tensor(self._array, requires_grad=False)
 
     def backward(self, vector = None, retain_graph = False):
         # vector is the gradient the gradient of the differentiated function w.r.t. self
