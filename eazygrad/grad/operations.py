@@ -81,8 +81,8 @@ class Sub(Operation):
 			shape1 = self.context["shape1"]
 			shape2 = self.context["shape2"]
 			return (
-				np.ones(shape1, dtype=np.float32),
-				-np.ones(shape2, dtype=np.float32),
+				np.ones(shape1, dtype=dtype),
+				-np.ones(shape2, dtype=dtype),
 			)
 		return (grad_output, -grad_output)
 
@@ -277,7 +277,7 @@ class Slice(Operation):
 		# Si les grad[key] on été utilisé différemment est ce que c'est toujours juste ?
 		key = self.context["key"]
 		shape = self.context["shape"]
-		dtype = grad_output.dtype if grad_output is not None else np.float32
+		dtype = self.context["dtype"]
 		grad = np.zeros(shape, dtype=dtype)
 		if grad_output is None :
 			grad[key] = 1

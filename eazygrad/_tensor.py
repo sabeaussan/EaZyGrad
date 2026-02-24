@@ -32,7 +32,7 @@ class _Tensor:
     def __getitem__(self, key):
         result = _Tensor(self._array[key], requires_grad=self.requires_grad)
         if self.requires_grad:
-            result.node_id = dag.create_node(parents_id=[self.node_id], operation=operations.Slice(shape=self._array.shape, key=key), result=result)
+            result.node_id = dag.create_node(parents_id=[self.node_id], operation=operations.Slice(shape=self._array.shape, key=key, dtype=dtype), result=result)
         return result
 
     def __add__(self, other, out=None):
