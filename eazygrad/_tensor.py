@@ -32,7 +32,7 @@ class _Tensor:
     def __getitem__(self, key):
         result = _Tensor(self._array[key], requires_grad=self.requires_grad)
         if self.requires_grad:
-            result.node_id = dag.create_node(parents_id=[self.node_id], operation=operations.Slice(shape=self._array.shape, key=key, dtype=dtype), result=result)
+            result.node_id = dag.create_node(parents_id=[self.node_id], operation=operations.Slice(shape=self._array.shape, key=key, dtype=result.dtype), result=result)
         return result
 
     def __add__(self, other, out=None):
@@ -318,9 +318,13 @@ class _Tensor:
             case _:
                 raise NotImplementedError(f"Unsupported dtype : {dtype}")
     
-    def __array__(self):
-        # TODO : add Numpy array interface, to support `numpy.asarray(tensor) -> ndarray
-        pass
+    # TODO : add tests
+    def __array__(self, dtype=None):
+        # Numpy array interface, to support `numpy.asarray(tensor) -> ndarray`
+        if dtype is None:
+            return self.numpy()
+        else:
+            return self.numpy().astype(dtype, copy=False)
 
     def detach(self):
         return _Tensor(self._array, requires_grad=False)

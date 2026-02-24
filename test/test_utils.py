@@ -165,6 +165,7 @@ array_pair_matmul_compat_strategy = compatible_shapes(transform_matmul).flatmap(
 )
 
 def make_tensor(arr, requires_grad=True):
+    # Expect numpy array as input
     t = _Tensor(arr.copy(), requires_grad=requires_grad)
     if requires_grad:
         # dag must come from _tensor to be mocked properly

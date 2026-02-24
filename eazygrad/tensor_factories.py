@@ -25,11 +25,6 @@ def tensor(array, requires_grad=True, dtype=None):
         new_tensor.node_id = dag.create_node(parents_id=[None], operation=None, result=new_tensor, is_leaf=True)
     return new_tensor
 
-# TODO:
-# Check if requires grad does the job
-# Don't compute grad if nto necessary
-# Add some doc and type hint for the rest of the code
-
 
 def randn(shape, requires_grad=False, dtype=np.float32):
     if not isinstance(shape, tuple):

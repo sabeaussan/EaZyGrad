@@ -31,7 +31,6 @@ class Optimizer:
 
 
 class SGD(Optimizer):
-	# TODO : add test for momentum and dampening
 	def __init__(self, parameters, lr=1e-3, momentum=0.0, dampening=0.0):
 		super().__init__(parameters, lr)
 		self.momentum = momentum
@@ -49,7 +48,6 @@ class SGD(Optimizer):
 			grad = self.buffer[idx]
 		return grad
 		
-# TODO : à tester
 class Adam(Optimizer):
 
 	def __init__(self, parameters, lr = 1e-3, betas=(0.9, 0.99), eps=1e-8):
@@ -69,7 +67,7 @@ class Adam(Optimizer):
 		self.t_steps[idx] += 1
 		return corrected_running_mean/(np.sqrt(corrected_running_var)+self.eps)
 
-# TODO : à tester
+
 class AdamW(Adam):
 
 	def __init__(self, parameters, lr = 1e-3, betas=(0.9, 0.99), eps=1e-8, weight_decay=0.01):

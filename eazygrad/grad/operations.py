@@ -4,6 +4,8 @@ from ..utils import check
 
 # Primitive operations operating on Tensor. Define a single node in the computation graph
 
+# TODO : Add tests when grad output is None 
+
 __all__ = [
     "Operation",
     "Add",
