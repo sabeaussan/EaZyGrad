@@ -11,7 +11,7 @@ def relu(input):
 		requires_grad = input.requires_grad
 		result = _Tensor(np.maximum(0,input._array), requires_grad = requires_grad)
 		if requires_grad : 
-			result.node_id = dag.create_node(parents_id = [input.node_id], operation = operations.ReLU(input._array), result = result)
+			result.node_id = dag.create_node(parents_id = [input.node_id], operation = operations.ReLU(arr=input._array), result = result)
 	else :
 		raise NotImplementedError
 	return result
@@ -38,7 +38,7 @@ def sigmoid(input):
 		result = _Tensor(f64_array, requires_grad = input.requires_grad, dtype=dtype)
 		if input.requires_grad : 
 			# /!\ array is now the sigmoid 
-			result.node_id = dag.create_node(parents_id = [input.node_id], operation = operations.Sigmoid(f64_array, dtype), result = result)
+			result.node_id = dag.create_node(parents_id = [input.node_id], operation = operations.Sigmoid(sigmoid=f64_array, dtype=dtype), result = result)
 	else :
 		raise NotImplementedError
 	return result

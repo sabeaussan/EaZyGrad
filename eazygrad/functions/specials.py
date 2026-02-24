@@ -61,7 +61,7 @@ def logsumexp(input, dim, keepdims=False):
 			if requires_grad : 
 				result.node_id = dag.create_node(
 					parents_id = [input.node_id], 
-					operation = operations.Copy(input.dtype), 
+					operation = operations.Copy(dtype=input.dtype), 
 					result = result
 				)
 			return result
@@ -76,7 +76,6 @@ def logsumexp(input, dim, keepdims=False):
 		if dim != -1 or dim != ndim-1:
 			logsumexp = np.moveaxis(logsumexp, dim, -1)
 			new_shape = logsumexp.shape
-			axis_moved = True
 
 		if ndim > 2:
 			logsumexp = logsumexp.reshape(-1, logsumexp.shape[-1])
@@ -104,7 +103,7 @@ def logsumexp(input, dim, keepdims=False):
 		if requires_grad : 
 			result.node_id = dag.create_node(
 				parents_id = [input.node_id], 
-				operation = operations.LogSumExp(f64_array, logsumexp, dim), 
+				operation = operations.LogSumExp(arr=f64_array, logsumexp=logsumexp, dim=dim), 
 				result = result
 			)
 	else :

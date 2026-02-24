@@ -28,7 +28,7 @@ def bce_with_logits_loss(logits, target):
 		if requires_grad : 
 			result.node_id = dag.create_node(
 				parents_id = [logits.node_id], 
-				operation = operations.BinaryCrossEntropy(f64_array, target._array), 
+				operation = operations.BinaryCrossEntropy(logits=f64_array, target=target._array), 
 				result = result
 			)
 	return result.mean()

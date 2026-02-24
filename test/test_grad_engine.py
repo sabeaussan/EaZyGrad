@@ -26,15 +26,15 @@ def get_rng():
 
 def mean_op(tensor):
     rng, seed = get_rng()
-    keep_dims = rng.random() > 0.5
+    keepdims = rng.random() > 0.5
     dims = test_utils.generate_dim_from_shape(tensor.shape, rng)
-    return tensor.mean(dim=dims, keepdim=keep_dims)
+    return tensor.mean(dim=dims, keepdims=keepdims)
 
 def sum_op(tensor):
     rng, seed = get_rng()
-    keep_dims = rng.random() > 0.5
+    keepdims = rng.random() > 0.5
     dims = test_utils.generate_dim_from_shape(tensor.shape, rng)
-    return tensor.sum(dim=dims, keepdims=keep_dims)
+    return tensor.sum(dim=dims, keepdims=keepdims)
 
 def safe_divide(tensor1, tensor2):
     # print(tensor2.requires_grad)

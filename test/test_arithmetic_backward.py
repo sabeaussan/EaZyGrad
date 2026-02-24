@@ -171,11 +171,11 @@ def test_mean_backward(array, keepdims, data):
     a_ez = test_utils.make_tensor(array)
     a_t = torch.tensor(array, requires_grad=True)
 
-    r_ez = a_ez.mean(dim=dim_arg, keepdim=keepdims)
+    r_ez = a_ez.mean(dim=dim_arg, keepdims=keepdims)
     axes = dim_arg
     if axes is None:
         axes = tuple(range(a_t.ndim))
-    r_t = a_t.mean(dim=axes, keepdim=keepdims)
+    r_t = a_t.mean(dim=axes, keepdims=keepdims)
 
     grad_output = test_utils.random_grad(r_ez._array.shape)
     r_ez.backward(grad_output)

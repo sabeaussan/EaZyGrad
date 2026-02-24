@@ -14,7 +14,7 @@ def exp(input):
 		array = input._array
 		result = _Tensor(np.exp(array), requires_grad = requires_grad)
 		if requires_grad : 
-			result.node_id = dag.create_node(parents_id = [input.node_id], operation = operations.Exp(input._array), result = result)
+			result.node_id = dag.create_node(parents_id = [input.node_id], operation = operations.Exp(arr=input._array), result = result)
 	else :
 		raise NotImplementedError
 	return result
@@ -28,7 +28,7 @@ def log(input):
 		array = input._array
 		result = _Tensor(np.log(array), requires_grad = requires_grad)
 		if requires_grad : 
-			result.node_id = dag.create_node(parents_id = [input.node_id], operation = operations.Log(input._array), result = result)
+			result.node_id = dag.create_node(parents_id = [input.node_id], operation = operations.Log(arr=input._array), result = result)
 	else :
 		raise NotImplementedError
 	return result
@@ -40,7 +40,7 @@ def cos(input):
 		requires_grad = input.requires_grad
 		result = _Tensor(np.cos(input._array), requires_grad = requires_grad)
 		if requires_grad : 
-			result.node_id = dag.create_node(parents_id = [input.node_id], operation = operations.Cos(input._array), result = result)
+			result.node_id = dag.create_node(parents_id = [input.node_id], operation = operations.Cos(arr=input._array), result = result)
 	else :
 		raise NotImplementedError
 	return result
@@ -52,7 +52,7 @@ def sin(input):
 		requires_grad = input.requires_grad
 		result = _Tensor(np.sin(input._array), requires_grad = requires_grad)
 		if requires_grad : 
-			result.node_id = dag.create_node(parents_id = [input.node_id], operation = operations.Sin(input._array), result = result)
+			result.node_id = dag.create_node(parents_id = [input.node_id], operation = operations.Sin(arr=input._array), result = result)
 	else :
 		raise NotImplementedError
 	return result

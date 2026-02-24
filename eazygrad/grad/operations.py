@@ -32,14 +32,13 @@ class Operation:
 
 	# stateful 
 
-	def __init__(self, *context): # context -> args
-		self.context = []
-		for ctx in context:
+	def __init__(self, **kwargs): # context -> args
+		self.context = kwargs
+		for ctx in self.context.values():
 			if isinstance(ctx, np.ndarray):
 				# protection against in-place ops
 				# prevent modification of saved context
 				ctx.flags.writeable=False
-			self.context.append(ctx)
 
 	def backward(self, grad_output):
 		# return the result of the grad_output-jacobian product
@@ -48,93 +47,95 @@ class Operation:
 	def __repr__(self):
 		return self.__class__.__name__
 
-# Bizarre Add et Sub en terme de args
-# Pas sur de la fiabilité
+
 class Add(Operation):
 
 	def backward(self, grad_output):
-		# One of the operands might be a scalar which does not need grad
-		# so we need to check wether we return one or two grads
-		grad_inputs = []
-		if grad_output is None :
-			grad_inputs.append(np.ones(self.context[0], dtype=self.context[0].dtype))
-			if len(self.context) > 1:
-				grad_inputs.append(np.ones(self.context[1], dtype=self.context[0].dtype))
-			return tuple(grad_inputs)
-		grad_inputs.append(grad_output)
-		if len(self.context) > 1:
-			grad_inputs.append(grad_output)
-		return tuple(grad_inputs)
+		dtype = self.context["dtype"]
+		if len(self.context.keys())==1:
+			shape = self.context["shape"]
+			if grad_output is None:
+				return (np.ones(shape, dtype=dtype),)
+			return (grad_output,)
+		# tensor + tensor
+		if grad_output is None:
+			shape1 = self.context["shape1"]
+			shape2 = self.context["shape2"]
+			return (
+				np.ones(shape1, dtype=dtype),
+				np.ones(shape2, dtype=dtype),
+			)
+		return (grad_output, grad_output)
 
 class Sub(Operation):
 
 	def backward(self, grad_output):
-		# One of the operands might be a scalar which does not need grad
-		# so we need to check wether we return one or two grads
-		grad_inputs = []
-		if grad_output is None :
-			grad_inputs.append(np.ones(self.context[0], dtype=self.context[0].dtype))
-			if len(self.context) > 1:
-				grad_inputs.append(-np.ones(self.context[1], dtype=self.context[0].dtype))
-			return tuple(grad_inputs)
-		grad_inputs.append(grad_output)
-		if len(self.context) > 1:
-			grad_inputs.append(-grad_output)
-		return tuple(grad_inputs)
+		dtype = self.context["dtype"]
+		if len(self.context.keys())==1:
+			shape = self.context["shape"]
+			if grad_output is None:
+				return (np.ones(shape, dtype=dtype),)
+			return (grad_output,)
+		# tensor - tensor
+		if grad_output is None:
+			shape1 = self.context["shape1"]
+			shape2 = self.context["shape2"]
+			return (
+				np.ones(shape1, dtype=np.float32),
+				-np.ones(shape2, dtype=np.float32),
+			)
+		return (grad_output, -grad_output)
 
 class Mul(Operation):
 
 	def backward(self, grad_output):
-		# One of the operands might be a scalar which does not need grad
-		# so we need to check wether we return one or two grads
-		grad_inputs = [self.context[1]]
-		if len(self.context) > 1:
-			grad_inputs.append(self.context[0])	
-		if grad_output is None :
-			grad_inputs = map(lambda x : x*np.ones_like(x, dtype=x.dtype), grad_inputs)
-			return tuple(grad_inputs)
-		grad_inputs = map(lambda x : x*grad_output, grad_inputs)
-		return tuple(grad_inputs)
+		if "scalar" in self.context:
+			scalar = self.context["scalar"]
+			if grad_output is None:
+				return (np.ones_like(self.context["arr"], dtype=self.context["arr"].dtype) * scalar,)
+			return (scalar * grad_output,)
+		# tensor * tensor
+		arr1 = self.context["arr1"]
+		arr2 = self.context["arr2"]
+		if grad_output is None:
+			return (arr2, arr1)
+		return (arr2 * grad_output, arr1 * grad_output)
 
 class Div(Operation):
 
 	def backward(self, grad_output):
-		# Type promotion for division
-		dtype = self.context[0].dtype
-		x_64 = self.context[0].astype(np.float64, copy=False)
-		y_64 = self.context[1]
-
-		if not check.is_scalar(self.context[1]):
-			y_64 = y_64.astype(np.float64, copy=False)
-			# Possibly recast gradients to original dtype
-			# if dtype is float64, no op
-			grad_x = (1 / y_64).astype(dtype, copy=False)
-		else:
-			grad_x = (1 / y_64)
-
-		grad_inputs = [grad_x]
-		# One of the operands might be a scalar which does not need grad
-		# so we need to check wether we return one or two grads
-		if len(self.context) > 1:
-			grad_y = (- x_64 / (y_64 ** 2)).astype(dtype, copy=False)
-			grad_inputs.append(grad_y)
-
-		if grad_output is None :
-			return tuple(grad_inputs)
-		
-		grad_inputs = map(lambda x : x*grad_output, grad_inputs)
-		return tuple(grad_inputs)
+		if "scalar" in self.context:
+			arr = self.context["arr"]
+			scalar = self.context["scalar"]
+			dtype = arr.dtype
+			grad_x = np.array(1 / scalar, dtype=dtype)
+			if grad_output is None:
+				return (np.ones_like(arr, dtype=dtype) * grad_x,)
+			return (grad_x * grad_output,)
+		# tensor / tensor
+		arr1 = self.context["arr1"]
+		arr2 = self.context["arr2"]
+		dtype = arr1.dtype
+		x_64 = arr1.astype(np.float64, copy=False)
+		y_64 = arr2.astype(np.float64, copy=False)
+		grad_x = (1 / y_64).astype(dtype, copy=False)
+		grad_y = (-x_64 / (y_64 ** 2)).astype(dtype, copy=False)
+		if grad_output is None:
+			return (grad_x, grad_y)
+		return (grad_x * grad_output, grad_y * grad_output)
 
 class RDiv(Operation):
 
 	def backward(self, grad_output):
 		# Type promotion for division
-		dtype = self.context[0].dtype
-		x_64 = self.context[0].astype(np.float64, copy=False)
+		arr = self.context["arr"]
+		scalar = self.context["scalar"]
+		dtype = arr.dtype
+		x_64 = arr.astype(np.float64, copy=False)
 		
 		# Possibly recast gradients to original dtype
 		# if dtype is float64, no op
-		grad_x = (- self.context[1] / (x_64 ** 2)).astype(dtype, copy=False)
+		grad_x = (- scalar / (x_64 ** 2)).astype(dtype, copy=False)
 
 		if grad_output is None :
 			return (grad_x, None)
@@ -143,10 +144,12 @@ class RDiv(Operation):
 class Pow(Operation):
 
 	def backward(self, grad_output):
-		if self.context[1] == 0:
-			grad_x = np.zeros_like(self.context[0])
+		arr = self.context["arr"]
+		exponent = self.context["exponent"]
+		if exponent == 0:
+			grad_x = np.zeros_like(arr)
 		else:
-			grad_x = self.context[1] * (self.context[0]**(self.context[1]-1))
+			grad_x = exponent * (arr ** (exponent - 1))
 		if grad_output is None:
 			return (grad_x,)	
 		return (grad_x * grad_output,)
@@ -154,8 +157,8 @@ class Pow(Operation):
 class InnerProduct(Operation):
 
 	def backward(self, grad_output):
-		grad_x = self.context[1]
-		grad_y = self.context[0]
+		grad_x = self.context["arr2"]
+		grad_y = self.context["arr1"]
 		if grad_output is None :
 			return (grad_x, grad_y)
 		else :
@@ -165,63 +168,69 @@ class InnerProduct(Operation):
 class MatMul(Operation):
 
 	def backward(self, grad_output):
-		if self.context[0].ndim > 1 :
-			grad_x = np.swapaxes(self.context[1],-1,-2)
-		# else:
-		# 	grad_x = np.expand_dims(self.context[1], axis=0)
+		arr1 = self.context["arr1"]
+		arr2 = self.context["arr2"]
+		if arr1.ndim > 1:
+			grad_x = np.swapaxes(arr2, -1, -2)
+		else:
+			grad_x = np.expand_dims(arr2, axis=0)
 
-		if self.context[1].ndim > 1 :
-			grad_y = np.swapaxes(self.context[0],-1,-2)
-		# else:
-		# 	grad_y = np.expand_dims(self.context[0], axis=1)
+		if arr2.ndim > 1:
+			grad_y = np.swapaxes(arr1, -1, -2)
+		else:
+			grad_y = np.expand_dims(arr1, axis=1)
 
-		if grad_output.ndim==0:
-			grad_output = np.expand_dims(grad_output, axis=0)
-
-		if grad_output is None :
+		if grad_output is None:
 			return (grad_x, grad_y)
-		else :
-			# print(grad_output.shape, grad_x.shape, grad_y.shape)
-			return (grad_output@grad_x, grad_y@grad_output)
+
+		if grad_output.ndim == 0:
+			grad_output = np.expand_dims(grad_output, axis=0)
+		return (grad_output @ grad_x, grad_y @ grad_output)
 
 
 class Sum(Operation):
 	def backward(self, grad_output):
-		dim, keepdims = self.context[1]
-		dtype = self.context[-1]
+		dim = self.context["dim"]
+		keepdims = self.context["keepdims"]
+		shape = self.context["shape"]
+		dtype = self.context["dtype"]
 		if grad_output is None :
-			return (np.ones(self.context[0], dtype=dtype),)
+			return (np.ones(shape, dtype=dtype),)
 		else :
 			# Check keepdims
 			if not keepdims:
 				grad_output = np.expand_dims(grad_output, axis=dim)
-			return (grad_output*np.ones(self.context[0], dtype=grad_output.dtype),)
+			return (grad_output * np.ones(shape, dtype=grad_output.dtype),)
 
 class Mean(Operation):
 	def backward(self, grad_output):
-		dim, keepdims = self.context[2]
-		dtype = self.context[-1]
+		dim = self.context["dim"]
+		keepdims = self.context["keepdims"]
+		shape = self.context["shape"]
+		div_factor = self.context["div_factor"]
+		dtype = self.context["dtype"]
 		if grad_output is None :
-			return (np.ones(self.context[0], dtype=dtype)*self.context[1],)
+			return (np.ones(shape, dtype=dtype) * div_factor,)
 		else :
 			# Check keepdims
 			if not keepdims:
 				grad_output = np.expand_dims(grad_output, axis=dim)
-			return (grad_output*np.ones(self.context[0], dtype=grad_output.dtype)*self.context[1],)
+			return (grad_output * np.ones(shape, dtype=grad_output.dtype) * div_factor,)
 
 
 class Exp(Operation):
 
 	def backward(self, grad_output):
+		arr = self.context["arr"]
 		if grad_output is None :
-			return (np.exp(self.context[0]),)
-		return (grad_output * np.exp(self.context[0]),)
+			return (np.exp(arr),)
+		return (grad_output * np.exp(arr),)
 	
 class Sigmoid(Operation):
 
 	def backward(self, grad_output):
-		sigmoid = self.context[0]
-		dtype = self.context[1]
+		sigmoid = self.context["sigmoid"]
+		dtype = self.context["dtype"]
 		dx = (sigmoid*(1-sigmoid)).astype(dtype, copy=False)
 		if grad_output is None :
 			return (dx,)
@@ -230,14 +239,15 @@ class Sigmoid(Operation):
 class Log(Operation):
 
 	def backward(self, grad_output):
+		arr = self.context["arr"]
 		if grad_output is None :
-			return (1/self.context[0],) 
-		return (grad_output * 1/self.context[0],)
+			return (1 / arr,) 
+		return (grad_output * 1 / arr,)
 
 class ReLU(Operation):
 
 	def backward(self, grad_output):
-		r = self.context[0] > 0
+		r = self.context["arr"] > 0
 		if grad_output is None :
 			return (r,)
 		return (r * grad_output,)
@@ -245,26 +255,30 @@ class ReLU(Operation):
 class Cos(Operation):
 
 	def backward(self, grad_output):
+		arr = self.context["arr"]
 		if grad_output is None :
-			return (-np.sin(self.context[0]),)
+			return (-np.sin(arr),)
 		else :
-			return (-np.sin(self.context[0]) * grad_output,)
+			return (-np.sin(arr) * grad_output,)
 
 class Sin(Operation):
 
 	def backward(self, grad_output):
+		arr = self.context["arr"]
 		if grad_output is None :
-			return (np.cos(self.context[0]),)
+			return (np.cos(arr),)
 		else :
-			return (np.cos(self.context[0]) * grad_output,)
+			return (np.cos(arr) * grad_output,)
 
 class Slice(Operation):
 
 	def backward(self, grad_output):
 		# TODO: pas hyper sur de ça
 		# Si les grad[key] on été utilisé différemment est ce que c'est toujours juste ?
-		key = self.context[1]
-		grad = np.zeros(self.context[0], dtype=grad_output.dtype)
+		key = self.context["key"]
+		shape = self.context["shape"]
+		dtype = grad_output.dtype if grad_output is not None else np.float32
+		grad = np.zeros(shape, dtype=dtype)
 		if grad_output is None :
 			grad[key] = 1
 		else :
@@ -274,26 +288,26 @@ class Slice(Operation):
 class Reshape(Operation):
 
 	def backward(self, grad_output):
-		grad = grad_output.reshape(self.context[0])
+		grad = grad_output.reshape(self.context["shape"])
 		return (grad,)
 
 class ExpandDims(Operation):
 	# Je crois que c'est juste un squeeze le reverse, pas un sum
 	def backward(self, grad_output):
-		grad = np.squeeze(grad_output, axis = self.context[0])
+		grad = np.squeeze(grad_output, axis=self.context["dim"])
 		return (grad,)
 
 class Squeeze(Operation):
 
 	def backward(self, grad_output):
-		grad = np.expand_dims(grad_output, axis = self.context[0])
+		grad = np.expand_dims(grad_output, axis=self.context["dim"])
 		return (grad,)
 
 class SwapDims(Operation):
 
 	# Je crois que c'est juste un squeeze le reverse, pas un sum
 	def backward(self, grad_output):
-		grad = np.swapaxes(grad_output, axis1 = self.context[1], axis2 = self.context[0])
+		grad = np.swapaxes(grad_output, axis1=self.context["dim2"], axis2=self.context["dim1"])
 		return (grad,)
 	
 class LogSumExp(Operation):
@@ -307,9 +321,9 @@ class LogSumExp(Operation):
 
 	def backward(self, grad_output):
 		# Type promotion for exp and sum
-		input_array = self.context[0] # float64
-		logsumexp = self.context[1]   # float64
-		dim = self.context[2]
+		input_array = self.context["arr"]      # float64
+		logsumexp = self.context["logsumexp"]  # float64
+		dim = self.context["dim"]
 
 		# Choose a dtype safely (grad_output may be None)
 		dtype = grad_output.dtype if grad_output is not None else input_array.dtype
@@ -327,8 +341,8 @@ class LogSumExp(Operation):
 class BinaryCrossEntropy(Operation):
 
 	def backward(self, grad_output):
-		logits = self.context[0]
-		target = self.context[1]
+		logits = self.context["logits"]
+		target = self.context["target"]
 		dtype = grad_output.dtype if grad_output is not None else logits.dtype
 		target = target.astype(dtype, copy=False)
 		# Stable sigmoid to avoid overflow for large |logits|
@@ -345,7 +359,7 @@ class BinaryCrossEntropy(Operation):
 class Copy(Operation):
 
 	def backward(self, grad_output):
-		dtype = self.context[0]
+		dtype = self.context["dtype"]
 		if dtype != grad_output.dtype:
 			return (grad_output.astype(dtype, copy=False),)
 		else:

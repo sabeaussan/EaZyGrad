@@ -166,7 +166,7 @@ def test_matmul_invalid_input(array1, array2):
 def test_mean_forward(array, keepdims, data):
     dim_arg = test_utils.random_axes(array, data)
     tensor = test_utils.make_tensor(array)
-    result = tensor.mean(dim=dim_arg, keepdim=keepdims)
+    result = tensor.mean(dim=dim_arg, keepdims=keepdims)
 
     axes = dim_arg
     if axes is None:
