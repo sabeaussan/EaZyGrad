@@ -1,5 +1,7 @@
 import numpy as np
 
+# TODO : add check for parameters
+
 class Optimizer:
 
 	def __init__(self, parameters, lr = 1e-3):

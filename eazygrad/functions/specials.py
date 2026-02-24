@@ -5,9 +5,6 @@ from ..grad import operations, dag
 from .math import exp
 import numba as nb
 # import line_profiler
-#
-# TODO : revoir les messages d'erreurs pour mieux indiquer ce qui devrai etre un tensor
-# TODO : maybe define a common wrapper or higher order function to take care of scalar check and co
 
 def _validate_dim_arg(dim):
 	if not isinstance(dim, int):
@@ -51,89 +48,85 @@ def _fast_logsumexp(x2d):
 
 # @line_profiler.profile
 def logsumexp(input, dim, keepdims=False):
-	if check.is_scalar(input):
-		raise TypeError("Expected a tensor")
-	elif isinstance(input, _Tensor):
-		ndim = input.ndim
-		requires_grad = input.requires_grad
-		if ndim == 0:
-			result = _Tensor(input.numpy(), requires_grad=requires_grad)
-			if requires_grad : 
-				result.node_id = dag.create_node(
-					parents_id = [input.node_id], 
-					operation = operations.Copy(dtype=input.dtype), 
-					result = result
-				)
-			return result
+	if not isinstance(input, _Tensor):
+		raise TypeError(f"Expected input to be an eazygrad tensor, got {type(input)}")
 
-		_validate_dim_arg(dim)
-		dtype = input.dtype
-		reshaped = False
-		# Maybe type promotion for exp and sum
-		f64_array = input._array.astype(np.float64, copy=False)
-		logsumexp = f64_array
-
-		if dim != -1 or dim != ndim-1:
-			logsumexp = np.moveaxis(logsumexp, dim, -1)
-			new_shape = logsumexp.shape
-
-		if ndim > 2:
-			logsumexp = logsumexp.reshape(-1, logsumexp.shape[-1])
-			reshaped = True
-
-
-		if not logsumexp.flags.c_contiguous:
-			logsumexp = np.ascontiguousarray(logsumexp)
-
-		if ndim==1:
-			# Convert to 2d array
-			logsumexp = _fast_logsumexp(np.expand_dims(logsumexp, axis=0))
-		else:
-			logsumexp = _fast_logsumexp(logsumexp)
-
-		if reshaped:
-			logsumexp = logsumexp.reshape(new_shape[:-1])
-
-		if keepdims and logsumexp.ndim < ndim:
-			logsumexp = np.expand_dims(logsumexp, axis=dim)
-
-		
-		# Recast to input dtype
-		result = _Tensor(logsumexp, requires_grad=requires_grad, dtype=dtype)
+	ndim = input.ndim
+	requires_grad = input.requires_grad
+	if ndim == 0:
+		result = _Tensor(input.numpy(), requires_grad=requires_grad)
 		if requires_grad : 
 			result.node_id = dag.create_node(
 				parents_id = [input.node_id], 
-				operation = operations.LogSumExp(arr=f64_array, logsumexp=logsumexp, dim=dim), 
+				operation = operations.Copy(dtype=input.dtype), 
 				result = result
 			)
-	else :
-		raise NotImplementedError
+		return result
+
+	_validate_dim_arg(dim)
+	dtype = input.dtype
+	reshaped = False
+	# Maybe type promotion for exp and sum
+	f64_array = input._array.astype(np.float64, copy=False)
+	logsumexp = f64_array
+
+	if dim != -1 or dim != ndim-1:
+		logsumexp = np.moveaxis(logsumexp, dim, -1)
+		new_shape = logsumexp.shape
+
+	if ndim > 2:
+		logsumexp = logsumexp.reshape(-1, logsumexp.shape[-1])
+		reshaped = True
+
+
+	if not logsumexp.flags.c_contiguous:
+		logsumexp = np.ascontiguousarray(logsumexp)
+
+	if ndim==1:
+		# Convert to 2d array
+		logsumexp = _fast_logsumexp(np.expand_dims(logsumexp, axis=0))
+	else:
+		logsumexp = _fast_logsumexp(logsumexp)
+
+	if reshaped:
+		logsumexp = logsumexp.reshape(new_shape[:-1])
+
+	if keepdims and logsumexp.ndim < ndim:
+		logsumexp = np.expand_dims(logsumexp, axis=dim)
+
+	
+	# Recast to input dtype
+	result = _Tensor(logsumexp, requires_grad=requires_grad, dtype=dtype)
+	if requires_grad : 
+		result.node_id = dag.create_node(
+			parents_id = [input.node_id], 
+			operation = operations.LogSumExp(arr=f64_array, logsumexp=logsumexp, dim=dim), 
+			result = result
+		)
 	return result 
 
 
 def softmax(input, dim):
-	if check.is_scalar(input):
-		raise TypeError("Expected a tensor")
-	elif isinstance(input, _Tensor):
-		_validate_dim_arg(dim)
-		dtype = input.dtype
-		# Type promotion for numerical stability
-		input = input.double()
-		shifted_input = input - logsumexp(input, dim, keepdims=True)
-		result = exp(shifted_input).to(dtype)
-	else :
-		raise NotImplementedError
+	if not isinstance(input, _Tensor):
+		raise TypeError(f"Expected input to be an eazygrad tensor, got {type(input)}")
+	
+	_validate_dim_arg(dim)
+	dtype = input.dtype
+	# Type promotion for numerical stability
+	input = input.double()
+	shifted_input = input - logsumexp(input, dim, keepdims=True)
+	result = exp(shifted_input).to(dtype)
+
 	return result
 
 def log_softmax(input, dim):
-	if check.is_scalar(input):
-		raise TypeError("Expected a tensor")
-	elif isinstance(input, _Tensor):
-		_validate_dim_arg(dim)
-		dtype = input.dtype
-		# Type promotion for numerical stability
-		input = input.to(np.float64)
-		result = (input - logsumexp(input, dim, keepdims=True)).to(dtype)
-	else :
-		raise NotImplementedError
+	if not isinstance(input, _Tensor):
+		raise TypeError(f"Expected input to be an eazygrad tensor, got {type(input)}")
+	
+	_validate_dim_arg(dim)
+	dtype = input.dtype
+	# Type promotion for numerical stability
+	input = input.to(np.float64)
+	result = (input - logsumexp(input, dim, keepdims=True)).to(dtype)
+
 	return result

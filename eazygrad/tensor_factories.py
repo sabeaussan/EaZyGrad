@@ -4,7 +4,6 @@ from .utils import check
 from ._tensor import _Tensor
 
 
-# TODO : à tester
 def from_numpy(array, requires_grad=False):
     # fast path to create tensor from numpy array without copy
     # /!\ Warning ! changes to the original array will be reflected in the tensor and vice versa
@@ -20,9 +19,7 @@ def from_numpy(array, requires_grad=False):
     return new_tensor
 
 def tensor(array, requires_grad=True, dtype=None):
-    # if isinstance(array, np.ndarray):
-    #     raise RuntimeWarning("Instantiating tensor from numpy array copies the underlying buffer. For no-copy use from_numpy.")
-    #     array = array.copy()
+    # Instantiating tensor from numpy array copies the underlying buffer. For no-copy use from_numpy.
     new_tensor = _Tensor(array=array, requires_grad=requires_grad, dtype=dtype)
     if requires_grad:
         new_tensor.node_id = dag.create_node(parents_id=[None], operation=None, result=new_tensor, is_leaf=True)

@@ -1,7 +1,7 @@
 import eazygrad as ez
 from .module import Module
 import numpy as np
-import functools
+from eazygrad import _Tensor
 
 class Linear(Module):
 
@@ -19,6 +19,8 @@ class Linear(Module):
 	
 	# TODO : extend buffers instead of reallocating it if the size is not enough
 	def forward(self,x):
+		if not isinstance(x, _Tensor):
+			raise TypeError(f"Expected input to be an eazygrad tensor, got {type(input)}")
 		if x.ndim == 1:
 			raise ValueError("Input should be a 2D array with shape (batch_size, n_in), got 1D array with shape {}".format(x.shape))
 		allocate_buffer = self.buffers[0] is None or self.buffers[0].shape[0] < x.shape[0]

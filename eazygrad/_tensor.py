@@ -19,7 +19,7 @@ class _Tensor:
     def __len__(self):
         return self._array.shape[0]
     
-    # TODO : à tester
+
     def __setitem__(self, key, value):
         try:
             self._array[key] = value
