@@ -10,6 +10,9 @@ def from_numpy(array, requires_grad=False):
     # /!\ Warning ! changes to the original array will be reflected in the tensor and vice versa
     if not isinstance(array, np.ndarray):
         raise TypeError(f"Input should be a np.ndarray but got {type(array)}.")
+    
+    if array.flags.writeable==False:
+        raise RuntimeError("Writing to a tensor created from a read-only NumPy array is not supported.")
 
     new_tensor = _Tensor(array=array, requires_grad=requires_grad)
     if requires_grad:

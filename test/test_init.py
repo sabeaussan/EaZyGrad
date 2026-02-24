@@ -5,6 +5,17 @@ import numpy as np
 import decimal
 import fractions
 
+@pytest.mark.parametrize("array", [
+    (np.array(10.0, dtype=np.int64)),
+    (np.array([0.0], dtype=np.float32)),
+    (np.random.randn(10,20).astype(np.float64)),             
+])
+def test_from_numpy(array):
+    t = eazygrad.from_numpy(array)
+    assert np.shares_memory(t._array, array)
+    np.testing.assert_allclose(t._array, array, rtol=1e-4, atol=1e-4)
+    
+
 @pytest.mark.parametrize("value, expected", [
     (5, True),                   # int
     (3.14, True),                # float
@@ -159,3 +170,4 @@ def test_tensor_from_list_matches_numpy(values):
     expected = np.array(values, dtype=np.float32)
     np.testing.assert_array_equal(ez._array, expected)
     assert ez.requires_grad is True
+

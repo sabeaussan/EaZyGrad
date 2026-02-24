@@ -142,7 +142,6 @@ class _Tensor:
             raise NotImplementedError
         return result
     
-    
 
     def matmul(self, other, out=None):
         if check.is_scalar(other):
@@ -318,7 +317,6 @@ class _Tensor:
             case _:
                 raise NotImplementedError(f"Unsupported dtype : {dtype}")
     
-    # TODO : add tests
     def __array__(self, dtype=None):
         # Numpy array interface, to support `numpy.asarray(tensor) -> ndarray`
         if dtype is None:
