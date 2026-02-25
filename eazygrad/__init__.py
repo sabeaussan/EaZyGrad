@@ -6,7 +6,6 @@ from . import nn
 from . import data
 from .optimizer import SGD, Adam, AdamW
 
-# /!\ TODO : add equal func
 # TODO : add more robust matmul tests
 
 class no_grad_ctx:

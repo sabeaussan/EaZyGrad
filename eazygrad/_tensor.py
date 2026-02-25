@@ -351,8 +351,14 @@ class _Tensor:
         dag.backward(self.node_id, retain_graph=retain_graph)
 
     def __str__(self):
-        return self._array.__str__()
+        if not self.requires_grad:
+            return f"eazygrad.tensor({self._array.tolist()}, dtype={self.dtype})"
+        else:
+            return f"eazygrad.tensor({self._array.tolist()}, dtype={self.dtype}, requires_grad={self.requires_grad})"
     
     def __repr__(self):
         # For printing tensor nested
-        return self._array.__repr__()
+        if not self.requires_grad:
+            return f"eazygrad.tensor({self._array.tolist()}, dtype={self.dtype})"
+        else:
+            return f"eazygrad.tensor({self._array.tolist()}, dtype={self.dtype}, requires_grad={self.requires_grad})"
