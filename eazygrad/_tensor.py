@@ -18,6 +18,9 @@ class _Tensor:
 
     def __len__(self):
         return self._array.shape[0]
+
+    def __eq__(self, other):
+        return _Tensor(self._array==other._array, requires_grad=False, dtype=np.bool)
     
 
     def __setitem__(self, key, value):

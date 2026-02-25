@@ -4,7 +4,7 @@ import fractions
 
 VALID_DTYPES = frozenset({
     np.float32, np.float64, 
-	np.int32, np.int64, np.uint8
+	np.int32, np.int64, np.uint8, np.bool
 })
 
 def input_array_type(array, dtype):

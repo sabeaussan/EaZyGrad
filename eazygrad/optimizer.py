@@ -1,6 +1,5 @@
 import numpy as np
-from .tensor import _Tensor
-# TODO : add check for parameters
+from ._tensor import _Tensor
 
 class Optimizer:
 
