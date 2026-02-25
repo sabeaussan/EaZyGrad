@@ -1,5 +1,5 @@
 import numpy as np
-
+from .tensor import _Tensor
 # TODO : add check for parameters
 
 class Optimizer:
@@ -7,6 +7,11 @@ class Optimizer:
 	def __init__(self, parameters, lr = 1e-3):
 		self.parameters = parameters
 		self.lr = lr
+
+	def _check_params(self):
+		for p in self.parameters():
+			if not isinstance(p, _Tensor):
+				raise RuntimeError(f"Parameters should be eazygrad tensors, got {type(p)}.")
 
 
 	def zero_grad(self):
