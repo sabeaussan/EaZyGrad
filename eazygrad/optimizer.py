@@ -5,8 +5,10 @@ class Optimizer:
 
 	def __init__(self, parameters, lr = 1e-3):
 		self.parameters = parameters
+		self.check_params()
 		self.lr = lr
 
+	# TODO : à tester
 	def _check_params(self):
 		for p in self.parameters():
 			if not isinstance(p, _Tensor):

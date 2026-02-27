@@ -62,7 +62,7 @@ class _Tensor:
             if requires_grad:
                 result.node_id = dag.create_node(parents_id=[self.node_id, other.node_id], operation=operations.Add(shape1=self._array.shape, shape2=other._array.shape, dtype=result.dtype), result=result)
         else:
-            raise NotImplementedError
+            raise RuntimeError(f"Other should be either a tensor or a scalar, got {type(other)}.")
         return result
 
     def __radd__(self, other):
@@ -80,7 +80,7 @@ class _Tensor:
             if requires_grad:
                 result.node_id = dag.create_node(parents_id=[self.node_id, other.node_id], operation=operations.Sub(shape1=self._array.shape, shape2=other._array.shape, dtype=result.dtype), result=result)
         else:
-            raise NotImplementedError
+            raise RuntimeError(f"Other should be either a tensor or a scalar, got {type(other)}.")
         return result
 
     def __rsub__(self, other):
@@ -101,7 +101,7 @@ class _Tensor:
             if requires_grad:
                 result.node_id = dag.create_node(parents_id=[self.node_id, other.node_id], operation=operations.Mul(arr1=self._array, arr2=other._array), result=result)
         else:
-            raise NotImplementedError
+            raise RuntimeError(f"Other should be either a tensor or a scalar, got {type(other)}.")
         return result
 
     def __rmul__(self, other):
@@ -119,7 +119,7 @@ class _Tensor:
             if requires_grad:
                 result.node_id = dag.create_node(parents_id=[self.node_id, other.node_id], operation=operations.Div(arr1=self._array, arr2=other._array), result=result)
         else:
-            raise NotImplementedError
+            raise RuntimeError(f"Other should be either a tensor or a scalar, got {type(other)}.")
         return result
 
     def __rtruediv__(self, other):
@@ -128,10 +128,8 @@ class _Tensor:
             result = _Tensor(other / self._array, requires_grad=requires_grad)
             if requires_grad:
                 result.node_id = dag.create_node(parents_id=[self.node_id], operation=operations.RDiv(arr=self._array, scalar=other), result=result)
-        elif isinstance(other, _Tensor):
-            raise NotImplementedError
         else:
-            raise NotImplementedError
+            raise RuntimeError(f"Other should be a scalar, got {type(other)}.")
         return result
 
     def __pow__(self, other):
@@ -140,17 +138,13 @@ class _Tensor:
             result = _Tensor(self._array ** other, requires_grad=requires_grad)
             if requires_grad:
                 result.node_id = dag.create_node(parents_id=[self.node_id], operation=operations.Pow(arr=self._array, exponent=other), result=result)
-        elif isinstance(other, _Tensor):
-            raise NotImplementedError("Raising a _Tensor to a power of type _Tensor is not supported, feel free to implement that ;)")
         else:
-            raise NotImplementedError
+            RuntimeError(f"Other should be a scalar, got {type(other)}.")
         return result
     
 
     def matmul(self, other, out=None):
-        if check.is_scalar(other):
-            raise RuntimeError("Can't apply matrix multiplication with a scalar")
-        elif isinstance(other, _Tensor):
+        if isinstance(other, _Tensor):
             if other._array.ndim==0 or self._array.ndim==0:
                 raise RuntimeError(f"Both arguments to matmul need to be at least 1D, but got {len(other._array.shape)}D and {len(self._array.shape)}D.")
             requires_grad = self.requires_grad or other.requires_grad
@@ -171,7 +165,7 @@ class _Tensor:
                     result.node_id = dag.create_node(parents_id=[self.node_id, other.node_id], operation=operations.MatMul(arr1=self._array, arr2=other._array), result=result)
             return result
         else:
-            raise RuntimeError("Expected a _Tensor")
+            raise RuntimeError(f"Other should be a tensor, got {type(other)}.")
 
     def __matmul__(self, other):
         return self.matmul(other)

@@ -94,7 +94,10 @@ class ComputationGraph:
 							
 
 	def plot(self, root_node_id, full_graph):
+		# check if graphviz is installed
 		check.graphviz()
+		if full_graph:
+			raise NotImplementedError
 		pending_nodes = []
 		heapq.heappush(pending_nodes, -root_node_id)
 		G = graphviz.Digraph(comment='Computation graph', format='svg')
