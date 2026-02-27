@@ -1,11 +1,32 @@
 import numpy as np
 import numbers
 import fractions
+import platform
+import shutil
 
 VALID_DTYPES = frozenset({
-    np.float32, np.float64, 
+	np.float32, np.float64, 
 	np.int32, np.int64, np.uint8, np.bool
 })
+
+def graphviz():
+	if shutil.which("dot"):
+		return
+
+	system = platform.system()
+
+	if system == "Windows":
+		msg = "Download and install Graphviz from https://graphviz.org/download/"
+	elif system == "Darwin":
+		msg = "Run: brew install graphviz"
+	elif system == "Linux":
+		msg = "Run: sudo apt install graphviz"
+	else:
+		msg = "Download and install Graphviz from https://graphviz.org/download/"
+
+	raise RuntimeError(
+		"Graphviz 'dot' executable not found.\n" + msg
+	)
 
 def input_array_type(array, dtype):
 	dtype = np.dtype(dtype).type if dtype is not None else None

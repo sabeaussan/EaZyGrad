@@ -1,7 +1,8 @@
 import eazygrad as ez
-import graphviz
 import numpy as np
 import heapq
+import graphviz
+from ..utils import check
 
 class Node:
 
@@ -92,32 +93,39 @@ class ComputationGraph:
 							heapq.heappush(pending_nodes, -parent_id)
 							
 
-
-	def plot(self, dump=False):
-		# TODO :  add json dump
-		# TODO : if node does not require grad, node is not in the graph ?
+	def plot(self, root_node_id, full_graph):
+		check.graphviz()
+		pending_nodes = []
+		heapq.heappush(pending_nodes, -root_node_id)
 		G = graphviz.Digraph(comment='Computation graph', format='svg')
-		nodes = set()
-		for node_id in range(len(self.node_map)):
-			if node_id in nodes:
+		while pending_nodes:
+			node_id = -heapq.heappop(pending_nodes)
+			if node_id is not None:
+				node = self.node_map[node_id]
+				label = (
+					f"id: {node_id}\n"
+					f"Operation: {node.operation}\n"
+				)
+				shape = "rectangle" if node.is_leaf else "circle"
+				fillcolor = "lightskyblue" if node.result.requires_grad else "mediumpurple"
+				G.node(str(node_id), label=label, shape=shape, style="filled", fillcolor=fillcolor, fontsize="20")
+			else:
+				label = (
+					f"id: {None}\n"
+					f"Operation: {None}\n"
+				)
+				G.node("None", label=label, shape="rectangle", style="filled", fillcolor="mediumpurple", fontsize="20")
 				continue
-			nodes.add(node_id)
-			node = self.node_map[node_id]
-			label = (
-				f"id: {node_id}\n"
-				f"Operation: {node.operation}\n"
-			)
-			shape = "rectangle" if node.is_leaf else "circle"
-			fillcolor = "lightskyblue" if node.result.requires_grad else "mediumpurple"
-			G.node(str(node_id), label=label, shape=shape, style="filled", fillcolor=fillcolor, fontsize="20")
-			# print(node_id, node.operation)
-			for parent_id in self.dag[node_id]:
-				if parent_id is not None:
+			parents_node_id = self.dag.get(node_id, [])
+			if parents_node_id:
+				for parent_id in parents_node_id:
 					G.edge(str(parent_id), str(node_id))
-		# Render the tree and display it.
-		G.render("foo", view=True)
 
-
+					if -parent_id not in pending_nodes:
+						heapq.heappush(pending_nodes, -parent_id)
+		
+		# Render the graph
+		G.render("dag", view=True)
 
 # Instantiate a global computation graph
 dag = ComputationGraph()

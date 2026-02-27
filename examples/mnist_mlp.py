@@ -57,6 +57,13 @@ def evaluate(model, loader):
         dag.grad_enable = prev_grad_state
 
 
+def visualize_dag(model):
+    x = ez.randn((1,784))
+    y = model(x)
+    y.plot_dag()
+    
+
+
 def main():
     np.random.seed(SEED)
     random.seed(SEED)
@@ -67,6 +74,7 @@ def main():
     test_loader = Dataloader(test_dataset, batch_size=BATCH_SIZE, shuffle=False, drop_last=False)
 
     model = Model(in_dim=INPUT_DIM, out_dim=OUTPUT_DIM, h_dim=HIDDEN_DIM, n_layer=N_LAYER)
+    visualize_dag(model)
     optimizer = ez.AdamW(model.net.parameters(), lr=LR)
 
     print("Training EaZyGrad MLP on MNIST")

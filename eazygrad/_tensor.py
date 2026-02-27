@@ -2,6 +2,8 @@ import numpy as np
 from .grad import operations, dag
 from .utils import check
 
+# TODO : replace generic error with specific error message
+
 class _Tensor:
 
     def __init__(self, array, requires_grad, dtype=None):
@@ -87,7 +89,6 @@ class _Tensor:
     def __neg__(self):
         return self.__mul__(-1)
     
-
     def __mul__(self, other):
         if check.is_scalar(other):
             requires_grad = self.requires_grad
@@ -349,6 +350,10 @@ class _Tensor:
         else:
             self.grad = None
         dag.backward(self.node_id, retain_graph=retain_graph)
+
+    def plot_dag(self, full_graph=False):
+        dag.plot(self.node_id, full_graph)
+
 
     def __str__(self):
         if not self.requires_grad:
