@@ -2,7 +2,6 @@ import numpy as np
 from .grad import operations, dag
 from .utils import check
 
-# TODO : replace generic error with specific error message
 
 class _Tensor:
 
@@ -185,8 +184,9 @@ class _Tensor:
         requires_grad = self.requires_grad
         if dim is None:
             dim = tuple(np.arange(len(self.shape)))
+        # Forces type promotion to float64 for mean/sum ops
         result = _Tensor(
-            self._array.astype(np.float64, copy=False).mean(axis=dim, keepdims=keepdims).astype(self.dtype), 
+            self._array.mean(axis=dim, keepdims=keepdims, dtype=np.float64).astype(self.dtype), 
             requires_grad=requires_grad
         )
         if requires_grad:
@@ -207,7 +207,7 @@ class _Tensor:
             dim = tuple(np.arange(len(self.shape)))
         requires_grad = self.requires_grad
         result = _Tensor(
-            self._array.astype(np.float64, copy=False).sum(axis=dim, keepdims=keepdims).astype(self.dtype), 
+            self._array.sum(axis=dim, keepdims=keepdims, dtype=np.float64).astype(self.dtype), 
             requires_grad=requires_grad
         )
         if requires_grad:

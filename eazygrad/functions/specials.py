@@ -66,7 +66,7 @@ def logsumexp(input, dim, keepdims=False):
 	_validate_dim_arg(dim)
 	dtype = input.dtype
 	reshaped = False
-	# Maybe type promotion for exp and sum
+	# Maybe type promotion for exp and sum ops
 	f64_array = input._array.astype(np.float64, copy=False)
 	logsumexp = f64_array
 
