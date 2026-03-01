@@ -172,7 +172,7 @@ class _Tensor:
     def reshape(self, *shape):
         # Return a view of the input array with given shape
         # Share the same data buffer as the original Tensor
-        result = _Tensor(self._array.reshape(shape), requires_grad=self.requires_grad)
+        result = _Tensor(self._array.reshape(*shape), requires_grad=self.requires_grad)
         if self.requires_grad:
             result.node_id = dag.create_node(parents_id=[self.node_id], operation=operations.Reshape(shape=self._array.shape), result=result)
         return result

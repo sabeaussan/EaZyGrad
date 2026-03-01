@@ -26,15 +26,16 @@ def tensor(array, requires_grad=True, dtype=None):
     return new_tensor
 
 
-def randn(shape, requires_grad=False, dtype=np.float32):
+def randn(*shape, requires_grad=False, dtype=np.float32):
     if not isinstance(shape, tuple):
         raise TypeError(f"Expected a shape of type tuple, got {type(shape)} instead")
     if 0 in shape:
         raise ValueError("At least one of the dimension is empty")
+    print(shape)
     return tensor(np.random.randn(*shape).astype(dtype), requires_grad=requires_grad)
 
 
-def uniform(low, high, shape, requires_grad=False, dtype=np.float32):
+def uniform(low=0.0, high=1.0, shape=None, requires_grad=False, dtype=np.float32):
     if not isinstance(shape, tuple):
         raise TypeError(f"Expected a shape of type tuple, got {type(shape)} instead")
     if not check.is_scalar(low) or not check.is_scalar(high):
@@ -44,7 +45,7 @@ def uniform(low, high, shape, requires_grad=False, dtype=np.float32):
     return tensor(np.random.uniform(low=low, high=high, size=shape).astype(dtype), requires_grad=requires_grad)
 
 
-def ones(shape, requires_grad=False, dtype=np.float32):
+def ones(*shape, requires_grad=False, dtype=np.float32):
     if not isinstance(shape, tuple):
         raise TypeError(f"Expected a shape of type tuple, got {type(shape)} instead")
     if 0 in shape:
@@ -52,7 +53,7 @@ def ones(shape, requires_grad=False, dtype=np.float32):
     return tensor(np.ones(shape).astype(dtype), requires_grad=requires_grad)
 
 
-def zeros(shape, requires_grad=False, dtype=np.float32):
+def zeros(*shape, requires_grad=False, dtype=np.float32):
     if not isinstance(shape, tuple):
         raise TypeError(f"Expected a shape of type tuple, got {type(shape)} instead")
     if 0 in shape:
