@@ -10,9 +10,12 @@ class Linear(Module):
 		self.n_out = n_out
 		self.buffers = [None] * 2
 		gain = np.float32(np.sqrt(1/self.n_in))
-		self.parameters = [ez.uniform(low=-gain, high=gain, shape=(n_in, n_out), requires_grad=requires_grad)]
+		self.weights = ez.uniform(low=-gain, high=gain, shape=(n_in, n_out), requires_grad=requires_grad)
 		if bias:
-			self.parameters.append(ez.uniform(low=-gain, high=gain, shape=(1, n_out), requires_grad=requires_grad))
+			self.bias = ez.uniform(low=-gain, high=gain, shape=(1, n_out), requires_grad=requires_grad)
+
+		self.register_params(self.weights)
+		self.register_params(self.bias)
 
 	def _get_buffer_shape(self, x):
 		return x.shape[:-1]+(self.n_out,)
@@ -27,11 +30,11 @@ class Linear(Module):
 		if allocate_buffer:
 			buff_shape = self._get_buffer_shape(x)
 			self.buffers[0] = np.empty(buff_shape, dtype=x.dtype)
-		y = x.matmul(self.parameters[0], out=self.buffers[0][:x.shape[0]])
-		if len(self.parameters)>1:
+		y = x.matmul(self.weights, out=self.buffers[0][:x.shape[0]])
+		if self.bias:
 			if allocate_buffer:
 				self.buffers[1] = np.empty(buff_shape, dtype=x.dtype)
-			y = y.__add__(self.parameters[1], out=self.buffers[1][:x.shape[0]])
+			y = y.__add__(self.bias, out=self.buffers[1][:x.shape[0]])
 		return y
 
 

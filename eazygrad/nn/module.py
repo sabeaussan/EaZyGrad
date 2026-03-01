@@ -3,6 +3,11 @@ import abc
 
 class Module(abc.ABC):
 
+	parameters = []
+
+	def register_params(self, params):
+		self.parameters.append(params)
+
 	@abc.abstractmethod
 	def forward(self, x):
 		"""
