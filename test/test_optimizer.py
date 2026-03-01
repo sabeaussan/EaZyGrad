@@ -3,8 +3,8 @@ from hypothesis import given, settings, strategies as st
 import hypothesis.extra.numpy as hnp
 import torch
 import test_utils
-from eazygrad.optimizer import SGD, Adam, AdamW
-
+from eazygrad.optimizer import Optimizer, SGD, Adam, AdamW
+import pytest
 
 def _params_and_grads(data):
     count = data.draw(st.integers(min_value=1, max_value=4))
@@ -56,6 +56,11 @@ def test_sgd_zero_grad(data):
 
     for p in ez_params:
         assert p.grad == None
+
+
+def test_check_params_rejects_non_tensor_params():
+    with pytest.raises(RuntimeError):
+        Optimizer([np.array([1.0, 2.0], dtype=np.float32), np.random.randn(5,5)], lr=1e-3)
 
 
 def _run_steps_eazygrad(params, grads_per_step, optimizer_cls, **opt_kwargs):

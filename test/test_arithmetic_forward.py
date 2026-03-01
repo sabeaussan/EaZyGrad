@@ -134,7 +134,7 @@ def test_pow_scalar(array, integer):
 @given(arrays=test_utils.array_pair_broadcast_compat_strategy)
 def test_pow_tensor_not_supported(arrays):
     a, b = map(test_utils.make_tensor, arrays)
-    with pytest.raises(NotImplementedError):
+    with pytest.raises(RuntimeError):
         _ = a ** b
 
 # ---- MATMUL ----

@@ -58,33 +58,33 @@ def test_tensor_invalid(array, requires_grad):
     assert isinstance(excinfo.value, (TypeError, ValueError))
 	    
 
-@pytest.mark.parametrize("shape, requires_grad", [
-    ([-5], True),
+@pytest.mark.parametrize("shape_args, requires_grad", [
+    ((-5,), True),
     ((3.14, 32), True),
     ((3, -32), True),
     ((3, 0), True),
-    ([3.14, 1, 5], False),
-    (3.14, False), 
-    (["string", True], True),
-    ([np.random.randn(10), np.random.randn(5)], True), 
-    ({"key" : np.arange(10)}, True), 
+    ((3.14, 1, 5), False),
+    ((3.14,), False),
+    (("string", True), True),
+    ((np.random.randn(10), np.random.randn(5)), True),
+    (({"key" : np.arange(10)},), True),
 ])
-def test_tensor_factories_invalid(shape, requires_grad):
+def test_tensor_factories_invalid(shape_args, requires_grad):
     for factory in [eazygrad.randn, eazygrad.ones, eazygrad.zeros]:
         with pytest.raises(Exception) as excinfo:
-            factory(*shape, requires_grad)
+            factory(*shape_args, requires_grad=requires_grad)
         assert isinstance(excinfo.value, (TypeError, ValueError))
 
-@pytest.mark.parametrize("shape, requires_grad", [
-    ((3, 32), True),
-    ([3, 32], False),
-    ((1,), False),
-    (np.arange(4), True), 
+@pytest.mark.parametrize("shape_args, expected_shape, requires_grad", [
+    ((3, 32), (3, 32), True),
+    ((3, 32), (3, 32), False),
+    ((1,), (1,), False),
+    ((2, 3, 4), (2, 3, 4), True),
 ])
-def test_tensor_factories_valid(shape, requires_grad):
+def test_tensor_factories_valid(shape_args, expected_shape, requires_grad):
     # test randn, empty, ones, zeros
     for factory in [eazygrad.randn, eazygrad.ones, eazygrad.zeros]:
-        assert factory(*shape, requires_grad=requires_grad)._array.shape == shape
+        assert factory(*shape_args, requires_grad=requires_grad)._array.shape == expected_shape
 
 def test_uniform_valid():
     shape = (3, 4)
@@ -123,20 +123,15 @@ def test_factory_valid_inputs(factory, shape, requires_grad):
     assert ez.requires_grad == requires_grad
     assert isinstance(ez, eazygrad._Tensor)
 
-# ------------------------
-# TypeError: shape is not a tuple
-# ------------------------
-
 @pytest.mark.parametrize("factory", [eazygrad.randn, eazygrad.ones, eazygrad.zeros])
-@pytest.mark.parametrize("bad_shape", [
-    [-3],          # list
-    3,            # int
-    "3,3",        # string
-    None
+@pytest.mark.parametrize("bad_shape_args", [
+    ([-3],),       # list passed as a single dimension
+    ("3,3",),      # string passed as a single dimension
+    (None,),       # None passed as a single dimension
 ])
-def test_factory_type_error(factory, bad_shape):
+def test_factory_type_error(factory, bad_shape_args):
     with pytest.raises(TypeError):
-        factory(bad_shape)
+        factory(*bad_shape_args)
 
 # ------------------------
 # ValueError: shape contains a 0
@@ -170,4 +165,3 @@ def test_tensor_from_list_matches_numpy(values):
     expected = np.array(values, dtype=np.float32)
     np.testing.assert_array_equal(ez._array, expected)
     assert ez.requires_grad is True
-

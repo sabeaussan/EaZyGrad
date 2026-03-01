@@ -138,7 +138,7 @@ class _Tensor:
             if requires_grad:
                 result.node_id = dag.create_node(parents_id=[self.node_id], operation=operations.Pow(arr=self._array, exponent=other), result=result)
         else:
-            RuntimeError(f"Other should be a scalar, got {type(other)}.")
+            raise RuntimeError(f"Other should be a scalar, got {type(other)}.")
         return result
     
 
