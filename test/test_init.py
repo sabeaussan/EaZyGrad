@@ -59,13 +59,12 @@ def test_tensor_invalid(array, requires_grad):
 	    
 
 @pytest.mark.parametrize("shape, requires_grad", [
-    ([5], True),
+    ([-5], True),
     ((3.14, 32), True),
     ((3, -32), True),
     ((3, 0), True),
     ([3.14, 1, 5], False),
     (3.14, False), 
-    (np.arange(10), True),
     (["string", True], True),
     ([np.random.randn(10), np.random.randn(5)], True), 
     ({"key" : np.arange(10)}, True), 
@@ -73,18 +72,19 @@ def test_tensor_invalid(array, requires_grad):
 def test_tensor_factories_invalid(shape, requires_grad):
     for factory in [eazygrad.randn, eazygrad.ones, eazygrad.zeros]:
         with pytest.raises(Exception) as excinfo:
-            factory(shape, requires_grad)
+            factory(*shape, requires_grad)
         assert isinstance(excinfo.value, (TypeError, ValueError))
 
 @pytest.mark.parametrize("shape, requires_grad", [
     ((3, 32), True),
-    ((3,), False),
-    ((1,), False), 
+    ([3, 32], False),
+    ((1,), False),
+    (np.arange(4), True), 
 ])
 def test_tensor_factories_valid(shape, requires_grad):
     # test randn, empty, ones, zeros
     for factory in [eazygrad.randn, eazygrad.ones, eazygrad.zeros]:
-        assert factory(shape, requires_grad)._array.shape == shape
+        assert factory(*shape, requires_grad=requires_grad)._array.shape == shape
 
 def test_uniform_valid():
     shape = (3, 4)
@@ -118,7 +118,7 @@ def test_uniform_invalid_bounds(low, high):
     ((1, 3, 5), False)
 ])
 def test_factory_valid_inputs(factory, shape, requires_grad):
-    ez = factory(shape, requires_grad=requires_grad)
+    ez = factory(*shape, requires_grad=requires_grad)
     assert ez.shape == shape
     assert ez.requires_grad == requires_grad
     assert isinstance(ez, eazygrad._Tensor)
@@ -129,7 +129,7 @@ def test_factory_valid_inputs(factory, shape, requires_grad):
 
 @pytest.mark.parametrize("factory", [eazygrad.randn, eazygrad.ones, eazygrad.zeros])
 @pytest.mark.parametrize("bad_shape", [
-    [3],          # list
+    [-3],          # list
     3,            # int
     "3,3",        # string
     None
@@ -145,7 +145,7 @@ def test_factory_type_error(factory, bad_shape):
 @pytest.mark.parametrize("factory", [eazygrad.randn, eazygrad.ones, eazygrad.zeros])
 def test_factory_zero_dim(factory):
     with pytest.raises(ValueError):
-        factory((3, 0, 2))
+        factory(*(3, 0, 2))
 
 # =============== Property tests ===============
 @given(st.integers() | st.floats(allow_nan=False, allow_infinity=False))
@@ -159,7 +159,7 @@ def test_is_number_with_non_numbers(x):
 @given(st.lists(st.integers(min_value=1, max_value=5), min_size=1, max_size=3))
 def test_ones_factory_shapes(shape_list):
     shape = tuple(shape_list)
-    ez = eazygrad.ones(shape)
+    ez = eazygrad.ones(*shape)
     assert ez.shape == shape
     assert np.all(ez._array == 1.0)
     assert ez._array.dtype in (np.float32, np.float64)
