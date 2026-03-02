@@ -17,20 +17,19 @@ OUTPUT_DIM = 10
 N_LAYER = 2
 
 
-class Model(nn.ModuleList):
+class Model(nn.Module):
     def __init__(self, in_dim, out_dim, h_dim, n_layer=2):
-        super().__init__()
-        # self.net = nn.ModuleList()
-        self.append(nn.Linear(n_in=in_dim, n_out=h_dim))
+        self.net = nn.ModuleList()
+        self.net.append(nn.Linear(n_in=h_dim, n_out=out_dim))
         for _ in range(n_layer - 1):
-            self.append(nn.Linear(n_in=h_dim, n_out=h_dim))
-        self.append(nn.Linear(n_in=h_dim, n_out=out_dim))
+            self.net.append(nn.Linear(n_in=h_dim, n_out=h_dim))
+        self.net.append(nn.Linear(n_in=in_dim, n_out=h_dim))
 
     def forward(self, x):
-        y = x
-        for i in range(len(self) - 1):
-            y = ez.relu(self[i](y))
-        return self[-1](y)
+        y = self.net[-1](x)
+        for i in range(1, len(self.net) - 1):
+            y = ez.relu(self.net[i](y))
+        return self.net[0](y)
 
 
 def evaluate(model, loader):
@@ -76,7 +75,7 @@ def main():
 
     model = Model(in_dim=INPUT_DIM, out_dim=OUTPUT_DIM, h_dim=HIDDEN_DIM, n_layer=N_LAYER)
     # visualize_dag(model)
-    optimizer = ez.AdamW(model.parameters(), lr=LR)
+    optimizer = ez.SGD(model.parameters(), lr=LR)
 
     print("Training EaZyGrad MLP on MNIST")
     for epoch in range(N_EPOCH):

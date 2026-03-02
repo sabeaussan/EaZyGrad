@@ -3,10 +3,10 @@ import abc
 
 class Module(abc.ABC):
 
-	params = []
+	_params = []
 
 	def register_params(self, params):
-		self.params.append(params)
+		self._params.append(params)
 
 	@abc.abstractmethod
 	def forward(self, x):
@@ -22,11 +22,15 @@ class Module(abc.ABC):
 		return f"({self.__class__.__name__})"
 
 	def parameters(self):
-		return self.params
+		params = [*self._params]
+		for attr in self.__dict__.values():
+			if issubclass(attr.__class__, Module):
+				params.extend(attr.parameters())
+		return params
 
 
 
-class ModuleList:
+class ModuleList(Module):
 
 	def __init__(self):
 		self.modules = []
@@ -59,11 +63,10 @@ class ModuleList:
 		self.modules.append(m)
 
 	def parameters(self):
-		parameters = []
+		params = []
 		for module in self.modules:
-			for p in module.params:
-				parameters.append(p)
-		return parameters
+			params.extend(module.parameters())
+		return params
 
 	def forward(self, x):
 		"""

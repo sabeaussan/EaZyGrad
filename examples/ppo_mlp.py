@@ -5,7 +5,7 @@ import numpy as np
 
 
 
-class PolicyNetwork(nn.Module):
+class Actor(nn.Module):
 
     def __init__(self, state_dim, act_dim, h_dim=256, n_layer=2):
         self.net = nn.ModuleList()
@@ -36,6 +36,23 @@ class PolicyNetwork(nn.Module):
         logZ = ez.logsumexp(logits, dim=-1)
         logp = logits.squeeze(0)[action] - logZ
         return logp
+
+class Critic(nn.Module):
+
+    def __init__(self, state_dim, h_dim=256, n_layer=2):
+        self.net = nn.ModuleList()
+        self.net.append(nn.Linear(n_in=state_dim, n_out=h_dim))
+        for _ in range(n_layer - 1):
+            self.net.append(nn.Linear(n_in=h_dim, n_out=h_dim))
+        self.net.append(nn.Linear(n_in=h_dim, n_out=1))
+
+    def forward(self, x):
+        y = x
+        for i in range(len(self.net) - 1):
+            y = ez.relu(self.net[i](y))
+        return self.net[-1](y)
+
+
 
 def collect_trajectories(env, policy, num_episode=10):
     """
