@@ -3,23 +3,26 @@ import abc
 
 class Module(abc.ABC):
 
-	parameters = []
+	params = []
 
 	def register_params(self, params):
-		self.parameters.append(params)
+		self.params.append(params)
 
 	@abc.abstractmethod
 	def forward(self, x):
 		"""
 		Apply the forward pass of the module to the input x
 		"""
-		pass
+		raise NotImplementedError(f"Forward pass not implemented for {self.__class__.__name__}")
 
 	def __call__(self, x):
 		return self.forward(x)
 
 	def __repr__(self):
 		return f"({self.__class__.__name__})"
+
+	def parameters(self):
+		return self.params
 
 
 
@@ -56,10 +59,19 @@ class ModuleList:
 		self.modules.append(m)
 
 	def parameters(self):
-		params = []
+		parameters = []
 		for module in self.modules:
-			for p in module.parameters:
-				params.append(p)
-		return params
+			for p in module.params:
+				parameters.append(p)
+		return parameters
+
+	def forward(self, x):
+		"""
+		Apply the forward pass of the module to the input x
+		"""
+		raise NotImplementedError(f"Forward pass not implemented for {self.__class__.__name__}")
+
+	def __call__(self, x):
+		return self.forward(x)
 
 
