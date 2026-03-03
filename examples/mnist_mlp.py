@@ -8,7 +8,7 @@ from eazygrad.data.dataloader import Dataloader
 from eazygrad.grad import dag
 
 SEED = 100
-BATCH_SIZE = 128
+BATCH_SIZE = 256
 N_EPOCH = 100
 LR = 1e-3
 INPUT_DIM = 28 * 28
@@ -19,6 +19,7 @@ N_LAYER = 2
 
 class Model(nn.Module):
     def __init__(self, in_dim, out_dim, h_dim, n_layer=2):
+        super().__init__()
         self.net = nn.ModuleList()
         self.net.append(nn.Linear(n_in=h_dim, n_out=out_dim))
         for _ in range(n_layer - 1):
@@ -74,6 +75,7 @@ def main():
     test_loader = Dataloader(test_dataset, batch_size=BATCH_SIZE, shuffle=False, drop_last=False)
 
     model = Model(in_dim=INPUT_DIM, out_dim=OUTPUT_DIM, h_dim=HIDDEN_DIM, n_layer=N_LAYER)
+    print(len(model.net.parameters()))
     # visualize_dag(model)
     optimizer = ez.SGD(model.parameters(), lr=LR)
 
@@ -90,6 +92,7 @@ def main():
             optimizer.zero_grad()
             logits = model(x)
             loss = ez.cross_entropy_loss(logits, y)
+            # print(loss)
             loss.backward()
             optimizer.step()
 

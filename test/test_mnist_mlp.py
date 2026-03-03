@@ -50,8 +50,8 @@ class TorchModel(tnn.Module):
 def _copy_eazygrad_weights_to_torch(ez_model, torch_model):
     with torch.no_grad():
         for ez_layer, torch_layer in zip(ez_model.net, torch_model.net):
-            ez_w = np.asarray(ez_layer.parameters[0]._array, dtype=np.float32)
-            ez_b = np.asarray(ez_layer.parameters[1]._array, dtype=np.float32).reshape(-1)
+            ez_w = np.asarray(ez_layer._params[0]._array, dtype=np.float32)
+            ez_b = np.asarray(ez_layer._params[1]._array, dtype=np.float32).reshape(-1)
             torch_layer.weight.copy_(torch.from_numpy(ez_w.T.copy()))
             torch_layer.bias.copy_(torch.from_numpy(ez_b.copy()))
 
@@ -59,8 +59,8 @@ def _copy_eazygrad_weights_to_torch(ez_model, torch_model):
 def _max_param_diff(ez_model, torch_model):
     max_diff = 0.0
     for ez_layer, torch_layer in zip(ez_model.net, torch_model.net):
-        ez_w = ez_layer.parameters[0]._array.astype(np.float32, copy=False)
-        ez_b = ez_layer.parameters[1]._array.astype(np.float32, copy=False).reshape(-1)
+        ez_w = ez_layer._params[0]._array.astype(np.float32, copy=False)
+        ez_b = ez_layer._params[1]._array.astype(np.float32, copy=False).reshape(-1)
         tw = torch_layer.weight.detach().cpu().numpy().T
         tb = torch_layer.bias.detach().cpu().numpy()
         max_diff = max(max_diff, float(np.max(np.abs(ez_w - tw))))
@@ -89,6 +89,7 @@ def test_mlp():
 
     print("Training eazygrad and PyTorch with shared init, batches, and hyperparameters")
     for epoch in range(N_EPOCH):
+        print(epoch)
         start_idx = np.random.randint(len(dataset.data) - BATCH_SIZE)
         x_ez, y_ez, x_torch, y_torch = _make_batch(dataset, start_idx, BATCH_SIZE)
 
@@ -116,5 +117,5 @@ def test_mlp():
                 f"max_param_diff={diff:.6e}"
             )
             assert diff < 1e-2, f"Parameters diverged too much at epoch {epoch}"
-
+            
 test_mlp()

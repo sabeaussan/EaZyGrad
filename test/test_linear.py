@@ -29,8 +29,8 @@ def test_linear_forward_with_bias(data):
     x_array, w_array, b_array = _linear_case(data, bias=True)
     x = test_utils.make_tensor(x_array, requires_grad=False)
     linear = Linear(x_array.shape[1], w_array.shape[1], bias=True, requires_grad=True)
-    linear.parameters[0] = test_utils.make_tensor(w_array, requires_grad=True)
-    linear.parameters[1] = test_utils.make_tensor(b_array, requires_grad=True)
+    linear.weights = test_utils.make_tensor(w_array, requires_grad=True)
+    linear.bias = test_utils.make_tensor(b_array, requires_grad=True)
     result = linear(x).numpy()
 
     t_linear = torch.nn.Linear(x_array.shape[1], w_array.shape[1], bias=True)
@@ -46,7 +46,7 @@ def test_linear_forward_no_bias(data):
     x_array, w_array, _ = _linear_case(data, bias=False)
     x = test_utils.make_tensor(x_array, requires_grad=False)
     linear = Linear(x_array.shape[1], w_array.shape[1], bias=False, requires_grad=True)
-    linear.parameters[0] = test_utils.make_tensor(w_array, requires_grad=True)
+    linear.weights = test_utils.make_tensor(w_array, requires_grad=True)
     result = linear(x).numpy()
 
     t_linear = torch.nn.Linear(x_array.shape[1], w_array.shape[1], bias=False)
@@ -61,8 +61,8 @@ def test_linear_backward_with_bias(data):
     x_array, w_array, b_array = _linear_case(data, bias=True)
     x = test_utils.make_tensor(x_array, requires_grad=True)
     linear = Linear(x_array.shape[1], w_array.shape[1], bias=True, requires_grad=True)
-    linear.parameters[0] = test_utils.make_tensor(w_array, requires_grad=True)
-    linear.parameters[1] = test_utils.make_tensor(b_array, requires_grad=True)
+    linear.weights = test_utils.make_tensor(w_array, requires_grad=True)
+    linear.bias = test_utils.make_tensor(b_array, requires_grad=True)
     y = linear(x)
 
     t_x = torch.tensor(x_array, requires_grad=True)
@@ -78,10 +78,10 @@ def test_linear_backward_with_bias(data):
 
     np.testing.assert_allclose(x.grad, t_x.grad.numpy(), rtol=1e-5, atol=1e-5)
     np.testing.assert_allclose(
-        linear.parameters[0].grad, t_linear.weight.grad.numpy().T, rtol=1e-5, atol=1e-5
+        linear.weights.grad, t_linear.weight.grad.numpy().T, rtol=1e-5, atol=1e-5
     )
     np.testing.assert_allclose(
-        linear.parameters[1].grad, t_linear.bias.grad.numpy().reshape(1, -1), rtol=1e-5, atol=1e-5
+        linear.bias.grad, t_linear.bias.grad.numpy().reshape(1, -1), rtol=1e-5, atol=1e-5
     )
 
 
@@ -90,7 +90,7 @@ def test_linear_backward_no_bias(data):
     x_array, w_array, _ = _linear_case(data, bias=False)
     x = test_utils.make_tensor(x_array, requires_grad=True)
     linear = Linear(x_array.shape[1], w_array.shape[1], bias=False, requires_grad=True)
-    linear.parameters[0] = test_utils.make_tensor(w_array, requires_grad=True)
+    linear.weights = test_utils.make_tensor(w_array, requires_grad=True)
     y = linear(x)
 
     t_x = torch.tensor(x_array, requires_grad=True)
@@ -105,5 +105,5 @@ def test_linear_backward_no_bias(data):
 
     np.testing.assert_allclose(x.grad, t_x.grad.numpy(), rtol=1e-5, atol=1e-5)
     np.testing.assert_allclose(
-        linear.parameters[0].grad, t_linear.weight.grad.numpy().T, rtol=1e-5, atol=1e-5
+        linear.weights.grad, t_linear.weight.grad.numpy().T, rtol=1e-5, atol=1e-5
     )

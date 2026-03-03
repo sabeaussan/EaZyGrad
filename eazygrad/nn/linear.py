@@ -6,16 +6,18 @@ from eazygrad import _Tensor
 class Linear(Module):
 
 	def __init__(self, n_in, n_out, bias=True, requires_grad=True):
+		super().__init__()
 		self.n_in = n_in
 		self.n_out = n_out
 		self.buffers = [None] * 2
 		gain = np.float32(np.sqrt(1/self.n_in))
 		self.weights = ez.uniform(low=-gain, high=gain, shape=(n_in, n_out), requires_grad=requires_grad)
+		self.register_params(self.weights)
+
+		self.bias = None
 		if bias:
 			self.bias = ez.uniform(low=-gain, high=gain, shape=(1, n_out), requires_grad=requires_grad)
-
-		self.register_params(self.weights)
-		self.register_params(self.bias)
+			self.register_params(self.bias)
 
 	def _get_buffer_shape(self, x):
 		return x.shape[:-1]+(self.n_out,)

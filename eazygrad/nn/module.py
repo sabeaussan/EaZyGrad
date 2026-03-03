@@ -1,14 +1,16 @@
 import eazygrad
 import abc
 
-class Module(abc.ABC):
+class Module:
 
-	_params = []
+	def __init__(self):
+		self._params = []
 
 	def register_params(self, params):
+		# print("registering")
+		# print(len(self._params))
 		self._params.append(params)
 
-	@abc.abstractmethod
 	def forward(self, x):
 		"""
 		Apply the forward pass of the module to the input x
@@ -23,6 +25,8 @@ class Module(abc.ABC):
 
 	def parameters(self):
 		params = [*self._params]
+		# print("rec : ", len(self._params))
+		# print(self)
 		for attr in self.__dict__.values():
 			if issubclass(attr.__class__, Module):
 				params.extend(attr.parameters())
@@ -65,7 +69,9 @@ class ModuleList(Module):
 	def parameters(self):
 		params = []
 		for module in self.modules:
+			# print("module")
 			params.extend(module.parameters())
+			# print(len(params))
 		return params
 
 	def forward(self, x):
