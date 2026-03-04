@@ -11,14 +11,14 @@ class Module:
 		# print(len(self._params))
 		self._params.append(params)
 
-	def forward(self, x):
+	def forward(self, *args):
 		"""
 		Apply the forward pass of the module to the input x
 		"""
 		raise NotImplementedError(f"Forward pass not implemented for {self.__class__.__name__}")
 
-	def __call__(self, x):
-		return self.forward(x)
+	def __call__(self, *args):
+		return self.forward(*args)
 
 	def __repr__(self):
 		return f"({self.__class__.__name__})"

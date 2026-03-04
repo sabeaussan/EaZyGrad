@@ -272,6 +272,16 @@ class Sin(Operation):
 		else :
 			return (np.cos(arr) * grad_output,)
 
+class Min(Operation):
+
+	def backward(self, grad_output):
+		# Route grad to selected path
+		idx = self.context["idx"]
+		if idx == 0:
+			return (grad_output, None)
+		else:
+			return (None, grad_output)
+
 class Slice(Operation):
 
 	def backward(self, grad_output):
