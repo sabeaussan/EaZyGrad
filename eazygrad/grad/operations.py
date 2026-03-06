@@ -22,6 +22,8 @@ __all__ = [
     "ReLU",
     "Cos",
     "Sin",
+    "Clip",
+    "Min",
     "Slice",
     "Reshape",
     "ExpandDims",
@@ -272,15 +274,36 @@ class Sin(Operation):
 		else :
 			return (np.cos(arr) * grad_output,)
 
+
+class Clip(Operation):
+
+	def backward(self, grad_output):
+		arr = self.context["arr"]
+		low = self.context["low"]
+		high = self.context["high"]
+		mask = (arr >= low) & (arr <= high)
+		if grad_output is None:
+			return (mask.astype(arr.dtype),)
+		return (grad_output * mask.astype(grad_output.dtype),)
+
 class Min(Operation):
 
 	def backward(self, grad_output):
-		# Route grad to selected path
 		idx = self.context["idx"]
+		tie = self.context["tie"]
+		arr1 = self.context["arr1"]
+		arr2 = self.context["arr2"]
+
+		if grad_output is None:
+			grad_output = np.array(1.0, dtype=arr1.dtype)
+
+		if tie:
+			half_grad = np.array(0.5, dtype=grad_output.dtype) * grad_output
+			return (half_grad, half_grad)
+
 		if idx == 0:
-			return (grad_output, None)
-		else:
-			return (None, grad_output)
+			return (grad_output, np.zeros_like(arr2, dtype=grad_output.dtype))
+		return (np.zeros_like(arr1, dtype=grad_output.dtype), grad_output)
 
 class Slice(Operation):
 

@@ -168,6 +168,44 @@ def test_exp_forward(array):
 
 
 # ============================================
+#                  MIN
+# ============================================
+
+
+@pytest.mark.parametrize(
+    "a, b",
+    [
+        (1.0, 2.0),
+        (-2.5, -3.0),
+        (3.14, 3.14),
+    ],
+)
+def test_min_forward_scalar(a, b):
+    t1 = test_utils.make_tensor(np.array(a, dtype=np.float32), requires_grad=False)
+    t2 = test_utils.make_tensor(np.array(b, dtype=np.float32), requires_grad=False)
+    result = eazygrad.min(t1, t2).numpy()
+    expected = torch.minimum(
+        torch.tensor(a, dtype=torch.float32),
+        torch.tensor(b, dtype=torch.float32),
+    ).numpy()
+    np.testing.assert_allclose(result, expected, rtol=1e-6, atol=1e-6)
+
+
+# ============================================
+#                  CLIP
+# ============================================
+
+
+@given(array=test_utils.array_or_scalar_strategy)
+def test_clip_forward(array):
+    low, high = -1.0, 1.0
+    t = test_utils.make_tensor(array, requires_grad=False)
+    result = eazygrad.clip(t, low, high).numpy()
+    expected = torch.clamp(torch.tensor(array), min=low, max=high).numpy()
+    np.testing.assert_allclose(result, expected, rtol=1e-6, atol=1e-6)
+
+
+# ============================================
 #                  LOG
 # ============================================
 

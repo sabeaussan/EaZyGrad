@@ -70,11 +70,12 @@ def logsumexp(input, dim, keepdims=False):
 	f64_array = input._array.astype(np.float64, copy=False)
 	logsumexp = f64_array
 
-	if dim != -1 or dim != ndim-1:
+	if dim != -1 and dim != ndim-1:
 		logsumexp = np.moveaxis(logsumexp, dim, -1)
-		new_shape = logsumexp.shape
+	
 
 	if ndim > 2:
+		new_shape = logsumexp.shape
 		logsumexp = logsumexp.reshape(-1, logsumexp.shape[-1])
 		reshaped = True
 

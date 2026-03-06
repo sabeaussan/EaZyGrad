@@ -13,14 +13,14 @@ def collect_trajectories(env, actor_critic, num_episode=10):
             action = actor_critic.get_action(state)
             next_state, reward, terminated, truncated, _ = env.step(action)
             done = terminated or truncated
-            trajectory.append((state, action, float(reward)))
+            trajectory.append((state, action, float(reward), terminated, truncated, next_state))
             state = next_state
         trajectories.append(trajectory)
     return trajectories
 
 
-def compute_returns(rewards, gamma=0.99):
-    G = 0.0
+def compute_returns(rewards, gamma=0.99, bootstrap_value=0.0):
+    G = float(bootstrap_value)
     out = []
     for r in reversed(rewards):
         G = r + gamma * G
@@ -45,11 +45,16 @@ def compute_actor_critic_losses(trajectories, actor_critic, gamma=0.99, critic_c
     total_steps = 0
 
     for traj in trajectories:
-        states, actions, rewards = zip(*traj)
+        states, actions, rewards, terminations, truncations, next_states = zip(*traj)
         episode_returns.append(sum(rewards))
 
-        returns = compute_returns(rewards, gamma=gamma)          # list length T
-        returns_t = ez.tensor(returns)                           # [T] tensor (constants)
+        # Bootstrap on time-limit truncation: episode ended due to cutoff, not environment terminal.
+        bootstrap_value = 0.0
+        if truncations[-1] and not terminations[-1]:
+            bootstrap_value = actor_critic.get_value(next_states[-1])
+
+        returns = compute_returns(rewards, gamma=gamma, bootstrap_value=bootstrap_value)
+        returns_t = ez.tensor(returns, requires_grad=False)
 
         for t in range(len(traj)):
             Gt = returns_t[t]                                     # scalar
@@ -117,10 +122,11 @@ def train(env, actor_critic, n_iter, n_episodes=10, gamma=0.99, lr=1e-3, critic_
 
 
 if __name__ == "__main__":
-    env = gym.make("CartPole-v1", render_mode="rgb_array")
+    env = gym.make("CartPole-v1")
 
     state_dim = env.observation_space.shape[0]
     act_dim = env.action_space.n
 
     actor_critic = ActorCritic(state_dim=state_dim, act_dim=act_dim)
     train(env, actor_critic, n_iter=500, n_episodes=10, gamma=0.99, lr=1e-3, critic_coef=0.5)
+    env.close()

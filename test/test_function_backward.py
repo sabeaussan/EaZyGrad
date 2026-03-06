@@ -1,4 +1,5 @@
 import numpy as np
+import pytest
 from hypothesis import given, settings, strategies as st
 import hypothesis.extra.numpy as hnp
 import eazygrad
@@ -91,6 +92,63 @@ def test_exp_backward_autograd(array):
 
     t = torch.tensor(array, requires_grad=True)
     y_torch = torch.exp(t)
+
+    grad_output = test_utils.random_grad(y._array.shape)
+    y.backward(grad_output)
+    y_torch.backward(torch.tensor(grad_output))
+
+    np.testing.assert_allclose(
+        x.grad, t.grad.numpy(),
+        atol=1e-5, rtol=1e-5,
+    )
+
+
+# ============================================
+#                  MIN
+# ============================================
+
+
+@pytest.mark.parametrize(
+    "a, b",
+    [
+        (1.0, 2.0),
+        (2.0, 1.0),
+        (3.5, 3.5),
+    ],
+)
+def test_min_backward_scalar(a, b):
+    a_np = np.array(a, dtype=np.float32)
+    b_np = np.array(b, dtype=np.float32)
+
+    ez_a = test_utils.make_tensor(a_np, requires_grad=True)
+    ez_b = test_utils.make_tensor(b_np, requires_grad=True)
+    ez_y = eazygrad.min(ez_a, ez_b)
+
+    t_a = torch.tensor(a, dtype=torch.float32, requires_grad=True)
+    t_b = torch.tensor(b, dtype=torch.float32, requires_grad=True)
+    t_y = torch.minimum(t_a, t_b)
+
+    grad_output = np.array(1.0, dtype=np.float32)
+    ez_y.backward(grad_output)
+    t_y.backward(torch.tensor(grad_output))
+
+    np.testing.assert_allclose(ez_a.grad, t_a.grad.numpy(), atol=1e-6, rtol=1e-6)
+    np.testing.assert_allclose(ez_b.grad, t_b.grad.numpy(), atol=1e-6, rtol=1e-6)
+
+
+# ============================================
+#                  CLIP
+# ============================================
+
+
+@given(array=test_utils.array_or_scalar_strategy)
+def test_clip_backward_autograd(array):
+    low, high = -1.0, 1.0
+    x = test_utils.make_tensor(array, requires_grad=True)
+    y = eazygrad.clip(x, low, high)
+
+    t = torch.tensor(array, requires_grad=True)
+    y_torch = torch.clamp(t, min=low, max=high)
 
     grad_output = test_utils.random_grad(y._array.shape)
     y.backward(grad_output)
