@@ -342,7 +342,7 @@ class _Tensor:
                 raise RuntimeError(f"The shape of vector should match self.shape, got {vector.shape} instead of {self.shape}")
             self.grad = vector
         else:
-            self.grad = None
+            self.grad = np.float32(1.0)
         dag.backward(self.node_id, retain_graph=retain_graph)
 
     def plot_dag(self, full_graph=False):

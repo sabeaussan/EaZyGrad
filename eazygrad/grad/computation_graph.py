@@ -123,7 +123,8 @@ class ComputationGraph:
 			if parents_node_id:
 				for parent_id in parents_node_id:
 					G.edge(str(parent_id), str(node_id))
-
+					if parent_id is None:
+						continue
 					if -parent_id not in pending_nodes:
 						heapq.heappush(pending_nodes, -parent_id)
 		
