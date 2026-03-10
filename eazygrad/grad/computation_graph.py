@@ -34,13 +34,8 @@ class ComputationGraph:
 
 	def clear_node(self, node_id):
 		# clear a specific node 
-		# tmp = self.node_map[node_id]
-		# tmp.result.plot_dag()
-		# print(sys.getrefcount(tmp))
 		del self.dag[node_id]
 		del self.node_map[node_id]
-		# print(sys.getrefcount(tmp))
-		# print("-"*50)
 		self.node_count -= 1
 
 	def create_node(self, parents_id, operation, result, is_leaf= False):
@@ -85,9 +80,6 @@ class ComputationGraph:
 				if parent_nodes_id:
 					for parent_id, grad in zip(parent_nodes_id, grads_inputs):
 						if parent_id is None:
-							# TODO : raising error for cross entropy loss with soft targets
-							# need further investigation (maybe target which does not require grad is the culprit)
-							# print(current_node_id, current_node.operation, print(grad))
 							continue
 						parent = self.node_map[parent_id]
 						if parent.result.requires_grad:
@@ -137,7 +129,7 @@ class ComputationGraph:
 						heapq.heappush(pending_nodes, -parent_id)
 		
 		# Render the graph
-		G.render("dag", view=True)
+		G.render(f"dag@root{root_node_id}", view=True)
 
 # Instantiate a global computation graph
 dag = ComputationGraph()

@@ -40,7 +40,6 @@ def bce_loss(predicted, target):
 	return -(target * log(predicted) + (1 - target) * log(1 - predicted)).mean()
 
 def cross_entropy_loss(predicted, target):
-	# TODO : add support for multi-dimensional inputs (e.g. image segmentation)
 	# Expect predicted to be Tensor with logits shape (N, C)
 	# target should be Tensor with class indices or target distribution
 	# -* if target is class indices shape is (N,)
