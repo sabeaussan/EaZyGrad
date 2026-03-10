@@ -73,22 +73,47 @@ class ActorCritic(nn.Module):
         value = float(self.critic(state_t).squeeze(0).squeeze(0).numpy())
         return action, logp, value
 
-    def get_logprob(self, logits, action: int):
-        if len(logits.shape) == 2 and logits.shape[0] != 1:
-            raise ValueError("get_logprob expects logits with batch size 1 (shape [1, act_dim]).")
+    def get_logprob(self, logits, action):
+        if logits.ndim != 2:
+            raise ValueError(f"get_logprob expects logits with shape [batch, act_dim], got {logits.shape}.")
 
-        logZ = ez.logsumexp(logits, dim=-1).squeeze(0)
-        logp = logits.squeeze(0)[action] - logZ
-        return logp
+        logZ = ez.logsumexp(logits, dim=-1)
+        batch_size = logits.shape[0]
+
+        if np.isscalar(action):
+            if batch_size != 1:
+                raise ValueError("Scalar action only supported when batch size is 1.")
+            selected_logits = logits[0, int(action)]
+            return selected_logits - logZ.squeeze(0)
+
+        action = np.asarray(action, dtype=np.int64)
+        if action.shape != (batch_size,):
+            raise ValueError(f"Expected actions with shape ({batch_size},), got {action.shape}.")
+
+        batch_index = np.arange(batch_size, dtype=np.int64)
+        selected_logits = logits[batch_index, action]
+        return selected_logits - logZ
 
     def get_value(self, state):
         state_t = ez.from_numpy(state).unsqueeze(0)
         v = self.critic(state_t)
         return float(v.squeeze(0).squeeze(0).numpy())
 
-    def forward(self, state, action: int):
-        s = ez.from_numpy(state).unsqueeze(0)
-        logits = self.actor(s)
-        value = self.critic(s).squeeze(0).squeeze(0)
-        logp = self.get_logprob(logits, action)
-        return logp, value
+    def evaluate_actions(self, states, actions):
+        states_t = ez.from_numpy(np.asarray(states, dtype=np.float32))
+        logits = self.actor(states_t)
+        values = self.critic(states_t).reshape(-1)
+        logp = self.get_logprob(logits, actions)
+        return logits, logp, values
+
+    def forward(self, state, action):
+        state_array = np.asarray(state, dtype=np.float32)
+        if state_array.ndim == 1:
+            _, logp, values = self.evaluate_actions(
+                states=np.expand_dims(state_array, axis=0),
+                actions=np.array([action], dtype=np.int64),
+            )
+            return logp.squeeze(0), values.squeeze(0)
+
+        _, logp, values = self.evaluate_actions(states=state_array, actions=action)
+        return logp, values
