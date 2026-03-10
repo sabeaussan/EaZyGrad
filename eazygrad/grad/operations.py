@@ -20,6 +20,8 @@ __all__ = [
 	"Exp",
 	"Log",
 	"ReLU",
+	"LeakyReLU",
+	"Tanh",
 	"Cos",
 	"Sin",
 	"Clip",
@@ -205,6 +207,12 @@ class ReLU(Operation):
 		r = self.context["arr"] > 0
 		return (r * grad_output,)
 
+class Tanh(Operation):
+
+	def backward(self, grad_output):
+		tanh = self.context["tanh"]
+		return ((1 - tanh * tanh) * grad_output,)
+
 class Cos(Operation):
 
 	def backward(self, grad_output):
@@ -243,8 +251,6 @@ class Min(Operation):
 class Slice(Operation):
 
 	def backward(self, grad_output):
-		# TODO: pas hyper sur de ça
-		# Si les grad[key] on été utilisé différemment est ce que c'est toujours juste ?
 		key = self.context["key"]
 		shape = self.context["shape"]
 		dtype = self.context["dtype"]

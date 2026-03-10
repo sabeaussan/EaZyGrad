@@ -3,6 +3,7 @@ import numpy as np
 import heapq
 import graphviz
 from ..utils import check
+import sys
 
 class Node:
 
@@ -33,8 +34,13 @@ class ComputationGraph:
 
 	def clear_node(self, node_id):
 		# clear a specific node 
+		# tmp = self.node_map[node_id]
+		# tmp.result.plot_dag()
+		# print(sys.getrefcount(tmp))
 		del self.dag[node_id]
 		del self.node_map[node_id]
+		# print(sys.getrefcount(tmp))
+		# print("-"*50)
 		self.node_count -= 1
 
 	def create_node(self, parents_id, operation, result, is_leaf= False):
@@ -70,7 +76,8 @@ class ComputationGraph:
 			current_node_id = -heapq.heappop(pending_nodes)
 			current_node = self.node_map[current_node_id]
 			if not current_node.is_leaf:
-				grads_inputs = current_node.operation.backward(current_node.result.grad)
+				grads_inputs = current_node.operation.backward(current_node.result.acc_grad)
+				current_node.result.acc_grad = np.float32(0.0)
 				parent_nodes_id = self.dag.get(current_node_id, [])
 				# Remove non-leaf node from graph if not needed anymore
 				if not retain_graph:
@@ -89,6 +96,7 @@ class ComputationGraph:
 								parent.result.grad = grad
 							else:
 								parent.result.grad += grad
+							parent.result.acc_grad += grad
 						if -parent_id not in pending_nodes:
 							heapq.heappush(pending_nodes, -parent_id)
 							

@@ -1,7 +1,7 @@
 import numpy as np
 from .grad import operations, dag
 from .utils import check
-
+import line_profiler
 
 class _Tensor:
 
@@ -14,6 +14,7 @@ class _Tensor:
             raise TypeError("Only tensors with floating point dtype can require gradients.")
         self.requires_grad = requires_grad and dag.grad_enable
         self.grad = None
+        self.acc_grad = np.float32(0.0)
         # the node_id reflects the creation node of the tensor
         self.node_id = None
 
@@ -141,7 +142,7 @@ class _Tensor:
             raise RuntimeError(f"Other should be a scalar, got {type(other)}.")
         return result
     
-
+    # @line_profiler.profile
     def matmul(self, other, out=None):
         if isinstance(other, _Tensor):
             if other._array.ndim==0 or self._array.ndim==0:
@@ -340,9 +341,9 @@ class _Tensor:
                 raise RuntimeError(f"The dtype of vector should match self.dtype, got {vector.dtype} instead of {self.dtype}")
             if vector.shape != self.shape:
                 raise RuntimeError(f"The shape of vector should match self.shape, got {vector.shape} instead of {self.shape}")
-            self.grad = vector
+            self.acc_grad = vector
         else:
-            self.grad = np.float32(1.0)
+            self.acc_grad = np.float32(1.0)
         dag.backward(self.node_id, retain_graph=retain_graph)
 
     def plot_dag(self, full_graph=False):

@@ -284,6 +284,29 @@ def test_relu_backward_autograd(array):
 
 
 # ============================================
+#                  TANH
+# ============================================
+
+
+@given(array=test_utils.array_or_scalar_strategy)
+def test_tanh_backward_autograd(array):
+    x = test_utils.make_tensor(array, requires_grad=True)
+    y = eazygrad.tanh(x)
+
+    t = torch.tensor(array, requires_grad=True)
+    torch_y = torch.tanh(t)
+
+    grad_output = test_utils.random_grad(y._array.shape)
+    y.backward(grad_output)
+    torch_y.backward(torch.tensor(grad_output))
+
+    np.testing.assert_allclose(
+        x.grad, t.grad.numpy(),
+        atol=1e-5, rtol=1e-5,
+    )
+
+
+# ============================================
 #                  SIGMOID
 # ============================================
 

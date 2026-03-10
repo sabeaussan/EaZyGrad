@@ -277,6 +277,17 @@ def test_relu_forward(array):
 
 
 # ============================================
+#                  TANH
+# ============================================
+@given(array=test_utils.array_or_scalar_strategy)
+def test_tanh_forward(array):
+    t = test_utils.make_tensor(array)
+    result = eazygrad.tanh(t).numpy()
+    expected = torch.tanh(torch.tensor(array)).numpy()
+    np.testing.assert_allclose(result, expected, rtol=1e-5, atol=1e-5)
+
+
+# ============================================
 #                  SIGMOID
 # ============================================
 @given(array=test_utils.array_or_scalar_strategy)

@@ -14,6 +14,7 @@ def relu(input):
 		result.node_id = dag.create_node(parents_id = [input.node_id], operation = operations.ReLU(arr=input._array), result = result)
 	return result
 
+
 def _stable_sigmoid_pos(x):
 	return 1/(1+np.exp(-x))
 
@@ -37,4 +38,20 @@ def sigmoid(input):
 	if input.requires_grad : 
 		# /!\ array is now the sigmoid 
 		result.node_id = dag.create_node(parents_id = [input.node_id], operation = operations.Sigmoid(sigmoid=f64_array, dtype=dtype), result = result)
+	return result
+
+
+def tanh(input):
+	if not isinstance(input, _Tensor):
+		raise TypeError(f"Expected input to be an eazygrad tensor, got {type(input)}")
+
+	requires_grad = input.requires_grad
+	tanh_array = np.tanh(input._array)
+	result = _Tensor(tanh_array, requires_grad=requires_grad)
+	if requires_grad:
+		result.node_id = dag.create_node(
+			parents_id=[input.node_id],
+			operation=operations.Tanh(tanh=tanh_array),
+			result=result,
+		)
 	return result

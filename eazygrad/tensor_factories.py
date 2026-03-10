@@ -18,7 +18,7 @@ def from_numpy(array, requires_grad=False):
         new_tensor.node_id = dag.create_node(parents_id=[None], operation=None, result=new_tensor, is_leaf=True)
     return new_tensor
 
-def tensor(array, requires_grad=True, dtype=None):
+def tensor(array, requires_grad=False, dtype=None):
     # Instantiating tensor from numpy array copies the underlying buffer. For no-copy use from_numpy.
     new_tensor = _Tensor(array=array, requires_grad=requires_grad, dtype=dtype)
     if requires_grad:
@@ -31,7 +31,6 @@ def randn(*shape, requires_grad=False, dtype=np.float32):
         raise TypeError(f"Expected a shape of type tuple, got {type(shape)} instead")
     if 0 in shape:
         raise ValueError("At least one of the dimension is empty")
-    print(shape)
     return tensor(np.random.randn(*shape).astype(dtype), requires_grad=requires_grad)
 
 
