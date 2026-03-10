@@ -191,6 +191,27 @@ def test_min_forward_scalar(a, b):
     np.testing.assert_allclose(result, expected, rtol=1e-6, atol=1e-6)
 
 
+@pytest.mark.parametrize(
+    "a, b",
+    [
+        (
+            np.array([[1.0, 4.0], [3.0, 2.0]], dtype=np.float32),
+            np.array([[2.0, 1.0], [3.0, 5.0]], dtype=np.float32),
+        ),
+        (
+            np.array([[1.0, -1.0, 0.0], [2.0, -3.0, 4.0]], dtype=np.float32),
+            np.array([0.5, -1.0, 1.0], dtype=np.float32),
+        ),
+    ],
+)
+def test_min_forward_batched(a, b):
+    t1 = test_utils.make_tensor(a, requires_grad=False)
+    t2 = test_utils.make_tensor(b, requires_grad=False)
+    result = eazygrad.min(t1, t2).numpy()
+    expected = torch.minimum(torch.tensor(a), torch.tensor(b)).numpy()
+    np.testing.assert_allclose(result, expected, rtol=1e-6, atol=1e-6)
+
+
 # ============================================
 #                  CLIP
 # ============================================

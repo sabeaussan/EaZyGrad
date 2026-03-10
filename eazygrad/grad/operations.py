@@ -7,28 +7,28 @@ from ..utils import check
 # TODO : Add tests when grad output is None 
 
 __all__ = [
-    "Operation",
-    "Add",
-    "Sub",
-    "Mul",
-    "Div",
-    "RDiv",
-    "Pow",
-    "MatMul",
-    "Sum",
-    "Mean",
-    "Exp",
-    "Log",
-    "ReLU",
-    "Cos",
-    "Sin",
-    "Clip",
-    "Min",
-    "Slice",
-    "Reshape",
-    "ExpandDims",
-    "Squeeze",
-    "SwapDims",
+	"Operation",
+	"Add",
+	"Sub",
+	"Mul",
+	"Div",
+	"RDiv",
+	"Pow",
+	"MatMul",
+	"Sum",
+	"Mean",
+	"Exp",
+	"Log",
+	"ReLU",
+	"Cos",
+	"Sin",
+	"Clip",
+	"Min",
+	"Slice",
+	"Reshape",
+	"ExpandDims",
+	"Squeeze",
+	"SwapDims",
 ]
 
 
@@ -230,19 +230,15 @@ class Clip(Operation):
 class Min(Operation):
 
 	def backward(self, grad_output):
-		idx = self.context["idx"]
-		tie = self.context["tie"]
 		arr1 = self.context["arr1"]
 		arr2 = self.context["arr2"]
-
-
-		if tie:
-			half_grad = np.array(0.5, dtype=grad_output.dtype) * grad_output
-			return (half_grad, half_grad)
-
-		if idx == 0:
-			return (grad_output, np.zeros_like(arr2, dtype=grad_output.dtype))
-		return (np.zeros_like(arr1, dtype=grad_output.dtype), grad_output)
+		lt_mask = arr1 < arr2
+		gt_mask = arr1 > arr2
+		eq_mask = ~(lt_mask | gt_mask)
+		half = np.array(0.5, dtype=grad_output.dtype)
+		grad1 = grad_output * (lt_mask.astype(grad_output.dtype) + half * eq_mask.astype(grad_output.dtype))
+		grad2 = grad_output * (gt_mask.astype(grad_output.dtype) + half * eq_mask.astype(grad_output.dtype))
+		return (grad1, grad2)
 
 class Slice(Operation):
 
@@ -253,7 +249,18 @@ class Slice(Operation):
 		shape = self.context["shape"]
 		dtype = self.context["dtype"]
 		grad = np.zeros(shape, dtype=dtype)
-		grad[key] = grad_output
+
+		def _is_advanced_index(index):
+			if isinstance(index, (list, np.ndarray)):
+				return True
+			if isinstance(index, tuple):
+				return any(isinstance(i, (list, np.ndarray)) for i in index)
+			return False
+
+		if _is_advanced_index(key):
+			np.add.at(grad, key, grad_output)
+		else:
+			grad[key] = grad_output
 		return (grad,)
 
 class Reshape(Operation):

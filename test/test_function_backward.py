@@ -136,6 +136,36 @@ def test_min_backward_scalar(a, b):
     np.testing.assert_allclose(ez_b.grad, t_b.grad.numpy(), atol=1e-6, rtol=1e-6)
 
 
+@pytest.mark.parametrize(
+    "a, b",
+    [
+        (
+            np.array([[1.0, 4.0], [3.5, 3.5]], dtype=np.float32),
+            np.array([[2.0, 1.0], [3.5, 1.5]], dtype=np.float32),
+        ),
+        (
+            np.array([[1.0, -1.0, 0.0], [2.0, -3.0, 4.0]], dtype=np.float32),
+            np.array([0.5, -1.0, 1.0], dtype=np.float32),
+        ),
+    ],
+)
+def test_min_backward_batched(a, b):
+    ez_a = test_utils.make_tensor(a, requires_grad=True)
+    ez_b = test_utils.make_tensor(b, requires_grad=True)
+    ez_y = eazygrad.min(ez_a, ez_b)
+
+    t_a = torch.tensor(a, requires_grad=True)
+    t_b = torch.tensor(b, requires_grad=True)
+    t_y = torch.minimum(t_a, t_b)
+
+    grad_output = test_utils.random_grad(ez_y._array.shape)
+    ez_y.backward(grad_output)
+    t_y.backward(torch.tensor(grad_output))
+
+    np.testing.assert_allclose(ez_a.grad, t_a.grad.numpy(), atol=1e-6, rtol=1e-6)
+    np.testing.assert_allclose(ez_b.grad, t_b.grad.numpy(), atol=1e-6, rtol=1e-6)
+
+
 # ============================================
 #                  CLIP
 # ============================================
