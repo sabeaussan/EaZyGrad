@@ -18,4 +18,4 @@ dependencies = [
 
 [project.optional-dependencies]
 data = ["pillow", "tqdm"]
-dev = ["torch", "pytest", "pytest-mock", "hypothesis"]
+dev = ["torch", "pytest", "pytest-mock", "hypothesis", "line_profiler"]

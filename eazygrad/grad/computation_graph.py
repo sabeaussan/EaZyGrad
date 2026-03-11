@@ -36,7 +36,6 @@ class ComputationGraph:
 		# clear a specific node 
 		del self.dag[node_id]
 		del self.node_map[node_id]
-		self.node_count -= 1
 
 	def create_node(self, parents_id, operation, result, is_leaf= False):
 		if not self.grad_enable:
