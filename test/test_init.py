@@ -90,7 +90,7 @@ def test_uniform_valid():
     shape = (3, 4)
     low = -6.0
     high = 5.2
-    ez = eazygrad.uniform(low, high, shape, requires_grad=True)
+    ez = eazygrad.uniform(*shape, low=low, high=high, requires_grad=True)
     assert isinstance(ez, eazygrad._Tensor)
     assert ez._array.shape == shape
     assert ez.requires_grad is True
@@ -105,7 +105,7 @@ def test_uniform_valid():
 ])
 def test_uniform_invalid_bounds(low, high):
     with pytest.raises(TypeError):
-        eazygrad.uniform(low, high, (2, 2))
+        eazygrad.uniform(2, 2, low=low, high=high)
 
 # ------------------------
 # Valid input test cases

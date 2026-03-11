@@ -27,7 +27,7 @@ class Model(nn.Module):
         self.net.append(nn.Linear(n_in=in_dim, n_out=h_dim))
 
     def forward(self, x):
-        y = self.net[-1](x)
+        y = ez.relu(self.net[-1](x))
         for i in range(1, len(self.net) - 1):
             y = ez.relu(self.net[i](y))
         return self.net[0](y)
@@ -59,7 +59,7 @@ def evaluate(model, loader):
 
 
 def visualize_dag(model):
-    x = ez.randn((1,784))
+    x = ez.randn(1,784)
     y = model(x)
     y.plot_dag()
     
@@ -75,7 +75,6 @@ def main():
     test_loader = Dataloader(test_dataset, batch_size=BATCH_SIZE, shuffle=False, drop_last=False)
 
     model = Model(in_dim=INPUT_DIM, out_dim=OUTPUT_DIM, h_dim=HIDDEN_DIM, n_layer=N_LAYER)
-    print(len(model.net.parameters()))
     # visualize_dag(model)
     optimizer = ez.SGD(model.parameters(), lr=LR)
 

@@ -245,8 +245,6 @@ def assert_allclose_with_index(x, y, rtol=1e-2, atol=5e-4):
 
     i = np.unravel_index(np.argmax(abs_diff - tol), x.shape)
 
-    dag.plot()
-
     raise AssertionError(
         f"Allclose failed at index {i}\n"
         f"x[{i}] = {x[i]}\n"

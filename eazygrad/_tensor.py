@@ -1,7 +1,6 @@
 import numpy as np
 from .grad import operations, dag
 from .utils import check
-import line_profiler
 
 class _Tensor:
 
@@ -10,7 +9,7 @@ class _Tensor:
         self._array = check.input_array_type(array, dtype)
         self.ndim = self._array.ndim
         self.dtype = self._array.dtype
-        if requires_grad and not np.issubdtype(dtype, np.floating):
+        if requires_grad and not np.issubdtype(self.dtype, np.floating):
             raise TypeError("Only tensors with floating point dtype can require gradients.")
         self.requires_grad = requires_grad and dag.grad_enable
         self.grad = None

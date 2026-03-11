@@ -34,11 +34,11 @@ def randn(*shape, requires_grad=False, dtype=np.float32):
     return tensor(np.random.randn(*shape).astype(dtype), requires_grad=requires_grad)
 
 
-def uniform(low=0.0, high=1.0, shape=None, requires_grad=False, dtype=np.float32):
+def uniform(*shape, low=0.0, high=1.0, requires_grad=False, dtype=np.float32):
     if not isinstance(shape, tuple):
         raise TypeError(f"Expected a shape of type tuple, got {type(shape)} instead")
     if not check.is_scalar(low) or not check.is_scalar(high):
-        raise TypeError(f"Wrong type for bounds, got low={type(shape)}, high={type(shape)}")
+        raise TypeError(f"Wrong type for bounds, got low={type(low)}, high={type(high)}")
     if 0 in shape:
         raise ValueError("At least one of the dimension is empty")
     return tensor(np.random.uniform(low=low, high=high, size=shape).astype(dtype), requires_grad=requires_grad)

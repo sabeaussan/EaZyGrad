@@ -76,7 +76,7 @@ def broadcasted_shape(grad, tensor):
 	
 	# Check expanded dims
 	num_expanded_dims = grad.ndim - tensor._array.ndim
-
+	dtype = grad.dtype
 	if num_expanded_dims > 0:
 		# float64 promotion for reduction
 		grad = grad.astype(np.float64, copy=False)
@@ -90,4 +90,4 @@ def broadcasted_shape(grad, tensor):
 		# float64 promotion for reduction
 		grad = grad.astype(np.float64, copy=False)
 		grad = np.sum(grad, tuple(broadcasted_dims), keepdims = True)
-	return grad.astype(np.float32)
+	return grad.astype(dtype, copy=False)
