@@ -61,12 +61,8 @@ def input_array_type(array, dtype):
 
 	
 def is_scalar(a):
+	# Check for scalar-like variables
 	return isinstance(a, numbers.Real) and not isinstance(a, (bool, fractions.Fraction))
-
-def check_tensors_type(func):
-	def wrapper(*args, **kwargs):
-		if is_scalar(input):
-			raise TypeError("Expected a tensor")
 
 def broadcasted_shape(grad, tensor):
 	"""

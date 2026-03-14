@@ -6,7 +6,7 @@ from ..utils import check
 import sys
 
 class Node:
-
+	# Node of the computation graph
 	def __init__(self, 
 				 parents_id, 
 				 operation, 
@@ -21,8 +21,12 @@ class Node:
 class ComputationGraph:
 
 	def __init__(self):
+		# the computation graph
+		# map between node_id and list(parent_id)
 		self.dag = {}
+		# node id
 		self.node_count = -1
+		# map between node_id and node
 		self.node_map = {}
 		self.grad_enable = True
 

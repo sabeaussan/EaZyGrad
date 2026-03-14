@@ -6,7 +6,7 @@ from ._tensor import _Tensor
 
 def from_numpy(array, requires_grad=False):
     # fast path to create tensor from numpy array without copy
-    # /!\ Warning ! changes to the original array will be reflected in the tensor and vice versa
+    # /!\ Warning ! Shared storage, changes to the original array will be reflected in the tensor and vice versa
     if not isinstance(array, np.ndarray):
         raise TypeError(f"Input should be a np.ndarray but got {type(array)}.")
     

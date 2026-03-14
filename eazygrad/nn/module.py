@@ -7,8 +7,6 @@ class Module:
 		self._params = []
 
 	def register_params(self, params):
-		# print("registering")
-		# print(len(self._params))
 		self._params.append(params)
 
 	def forward(self, *args):
@@ -24,9 +22,9 @@ class Module:
 		return f"({self.__class__.__name__})"
 
 	def parameters(self):
+		# Recursively discover parameters of the module
+		# and append them to the list of parameters
 		params = [*self._params]
-		# print("rec : ", len(self._params))
-		# print(self)
 		for attr in self.__dict__.values():
 			if issubclass(attr.__class__, Module):
 				params.extend(attr.parameters())
@@ -67,11 +65,10 @@ class ModuleList(Module):
 		self.modules.append(m)
 
 	def parameters(self):
+		# overload parameters to iterate over the list of modules
 		params = []
 		for module in self.modules:
-			# print("module")
 			params.extend(module.parameters())
-			# print(len(params))
 		return params
 
 	def forward(self, x):

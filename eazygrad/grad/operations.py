@@ -1,5 +1,7 @@
 import numpy as np
 from ..utils import check
+
+
 # Return always (grad,) because otherwise iterate over multiple of the grad if it is a list
 
 # Primitive operations operating on Tensor. Define a single node in the computation graph

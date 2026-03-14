@@ -46,7 +46,6 @@ def _fast_logsumexp(x2d):
 
     return out
 
-# @line_profiler.profile
 def logsumexp(input, dim, keepdims=False):
 	if not isinstance(input, _Tensor):
 		raise TypeError(f"Expected input to be an eazygrad tensor, got {type(input)}")
@@ -54,6 +53,7 @@ def logsumexp(input, dim, keepdims=False):
 	ndim = input.ndim
 	requires_grad = input.requires_grad
 	if ndim == 0:
+		# no-op, return the tensor
 		result = _Tensor(input.numpy(), requires_grad=requires_grad)
 		if requires_grad : 
 			result.node_id = dag.create_node(

@@ -25,7 +25,6 @@ def exp(input):
 		raise TypeError(f"Expected input to be an eazygrad tensor, got {type(input)}")
 
 	requires_grad = input.requires_grad
-	# Type promotion for exp
 	array = input._array
 	result = _Tensor(np.exp(array), requires_grad = requires_grad)
 	if requires_grad : 
@@ -37,7 +36,6 @@ def log(input):
 	if not isinstance(input, _Tensor):
 		raise TypeError(f"Expected input to be an eazygrad tensor, got {type(input)}")
 	requires_grad = input.requires_grad
-	# Type promotion for log
 	array = input._array
 	result = _Tensor(np.log(array), requires_grad = requires_grad)
 	if requires_grad : 

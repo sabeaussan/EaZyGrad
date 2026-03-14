@@ -13,7 +13,9 @@ class _Tensor:
         if requires_grad and not np.issubdtype(self.dtype, np.floating):
             raise TypeError("Only tensors with floating point dtype can require gradients.")
         self.requires_grad = requires_grad and dag.grad_enable
-        # Grad atttributes. acc_grad is a temporary buffer
+        # Grad atttributes : 
+        # - acc_grad is a temporary buffer to compute backward
+        # - grad contains the value used for gradient descent
         self.grad = None
         self.acc_grad = np.float32(0.0)
         # the node_id reflects the creation node of the tensor
@@ -27,6 +29,7 @@ class _Tensor:
     
 
     def __setitem__(self, key, value):
+        # overloads the array[key]=value operator
         try:
             self._array[key] = value
         except ValueError as e:
@@ -36,7 +39,7 @@ class _Tensor:
                 raise e
 
     def __getitem__(self, key):
-        # overloads the array[key] operator
+        # overloads the value=array[key] operator
         result = _Tensor(self._array[key], requires_grad=self.requires_grad)
         if self.requires_grad:
             result.node_id = dag.create_node(parents_id=[self.node_id], operation=operations.Slice(shape=self._array.shape, key=key, dtype=result.dtype), result=result)
@@ -136,7 +139,6 @@ class _Tensor:
             raise RuntimeError(f"Other should be a scalar, got {type(other)}.")
         return result
     
-    # @line_profiler.profile
     def matmul(self, other):
         if isinstance(other, _Tensor):
             if other._array.ndim==0 or self._array.ndim==0:
@@ -241,7 +243,10 @@ class _Tensor:
     def clear_grad(self) -> None:
         self.grad = None
 
-    def numpy(self):
+    def numpy(self, force=True):
+        # Always returns a copy unlike pytorch
+        if not force:
+            raise NotImplementedError("Unlike Pytorch, always force a copy, no shared storage.")
         return self._array.copy()
     
     def float(self):
@@ -313,6 +318,7 @@ class _Tensor:
             return self.numpy().astype(dtype, copy=False)
 
     def detach(self):
+        raise NotImplementedError("As implemented currently, it can lead to memory leaks.")
         return _Tensor(self._array, requires_grad=False)
 
     def backward(self, vector = None, retain_graph = False):
@@ -346,7 +352,7 @@ class _Tensor:
             return f"eazygrad.tensor({self._array.tolist()}, dtype={self.dtype}, requires_grad={self.requires_grad})"
     
     def __repr__(self):
-        # For printing tensor nested
+        # For printing nested tensor
         if not self.requires_grad:
             return f"eazygrad.tensor({self._array.tolist()}, dtype={self.dtype})"
         else:
