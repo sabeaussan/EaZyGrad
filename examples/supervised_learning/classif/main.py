@@ -21,6 +21,8 @@ class Model(nn.Module):
     def __init__(self, in_dim, out_dim, h_dim, n_layer=2):
         super().__init__()
         self.net = nn.ModuleList()
+        # The output layer is stored first so the forward pass can mirror the
+        # original hand-written architecture from the inside out.
         self.net.append(nn.Linear(n_in=h_dim, n_out=out_dim))
         for _ in range(n_layer - 1):
             self.net.append(nn.Linear(n_in=h_dim, n_out=h_dim))
@@ -35,6 +37,7 @@ class Model(nn.Module):
 
 def evaluate(model, loader):
     prev_grad_state = dag.grad_enable
+    # Evaluation only needs forward values, so skip graph construction entirely.
     dag.grad_enable = False
     try:
         total_loss = 0.0
@@ -42,6 +45,7 @@ def evaluate(model, loader):
         total = 0
         n_batches = 0
         for x_np, y_np in loader:
+            # MNIST arrives as uint8 images; flatten and cast before the MLP.
             x = ez.from_numpy(x_np.astype(np.float32), requires_grad=False).reshape(-1, INPUT_DIM)
             y = ez.from_numpy(y_np.astype(np.int64), requires_grad=False)
             logits = model(x)
@@ -85,6 +89,8 @@ def main():
         total = 0
         n_batches = 0
         for x_np, y_np in train_loader:
+            # Training uses the same flattening path as evaluation to keep the
+            # model interface purely 2D: [batch, features].
             x = ez.from_numpy(x_np.astype(np.float32)).reshape(-1, INPUT_DIM)
             y = ez.from_numpy(y_np.astype(np.int64), requires_grad=False)
 

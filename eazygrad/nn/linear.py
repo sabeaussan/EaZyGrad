@@ -1,11 +1,33 @@
+from __future__ import annotations
+
 import eazygrad as ez
 from .module import Module
 import numpy as np
 from eazygrad import _Tensor
 
 class Linear(Module):
+	"""
+	Fully connected linear layer.
 
-	def __init__(self, n_in, n_out, bias=True, requires_grad=True):
+	Parameters
+	----------
+	n_in : int
+		Number of input features.
+	n_out : int
+		Number of output features.
+	bias : bool, default=True
+		Whether to include a learnable bias term.
+	requires_grad : bool, default=True
+		Whether the layer parameters should participate in automatic
+		differentiation.
+
+	Notes
+	-----
+	The layer stores weights with shape ``(n_in, n_out)`` and applies the
+	transformation ``x @ weights + bias`` to batched 2D inputs.
+	"""
+
+	def __init__(self, n_in: int, n_out: int, bias: bool = True, requires_grad: bool = True) -> None:
 		super().__init__()
 		self.n_in = n_in
 		self.n_out = n_out
@@ -18,7 +40,7 @@ class Linear(Module):
 			self.bias = ez.uniform(1, n_out, low=-gain, high=gain,requires_grad=requires_grad)
 			self.register_params(self.bias)
 
-	def forward(self,x):
+	def forward(self, x: _Tensor) -> _Tensor:
 		if not isinstance(x, _Tensor):
 			raise TypeError(f"Expected input to be an eazygrad tensor, got {type(x)}")
 		if x.ndim == 1:
@@ -29,6 +51,6 @@ class Linear(Module):
 		return y
 
 
-	def __repr__(self):
+	def __repr__(self) -> str:
 		a = super().__repr__()
 		return f"------> n_in : {self.n_in}  |  n_out : {self.n_out}"

@@ -1,10 +1,14 @@
+from __future__ import annotations
+
+from typing import Any
+
 import numpy as np
 from .grad import operations, dag
 from .utils import check
 
 class _Tensor:
 
-    def __init__(self, array, requires_grad, dtype=None):
+    def __init__(self, array: Any, requires_grad: bool, dtype: Any = None) -> None:
         # /!\ Warning ! array is not copied if this __init__ function is used instead of tensor factories
         self._array = check.input_array_type(array, dtype)
         self.ndim = self._array.ndim
@@ -21,14 +25,14 @@ class _Tensor:
         # the node_id reflects the creation node of the tensor
         self.node_id = None
 
-    def __len__(self):
+    def __len__(self) -> int:
         return self._array.shape[0]
 
-    def __eq__(self, other):
+    def __eq__(self, other: _Tensor) -> _Tensor:
         return _Tensor(self._array==other._array, requires_grad=False, dtype=np.bool)
     
 
-    def __setitem__(self, key, value):
+    def __setitem__(self, key: Any, value: Any) -> None:
         # overloads the array[key]=value operator
         try:
             self._array[key] = value
@@ -38,14 +42,14 @@ class _Tensor:
             else:
                 raise e
 
-    def __getitem__(self, key):
+    def __getitem__(self, key: Any) -> _Tensor:
         # overloads the value=array[key] operator
         result = _Tensor(self._array[key], requires_grad=self.requires_grad)
         if self.requires_grad:
             result.node_id = dag.create_node(parents_id=[self.node_id], operation=operations.Slice(shape=self._array.shape, key=key, dtype=result.dtype), result=result)
         return result
 
-    def __add__(self, other):
+    def __add__(self, other: _Tensor | float | int) -> _Tensor:
         if check.is_scalar(other):
             requires_grad = self.requires_grad
             result_arr = np.add(self._array, other)
@@ -62,10 +66,10 @@ class _Tensor:
             raise RuntimeError(f"Other should be either a tensor or a scalar, got {type(other)}.")
         return result
 
-    def __radd__(self, other):
+    def __radd__(self, other: _Tensor | float | int) -> _Tensor:
         return self.__add__(other)
 
-    def __sub__(self, other):
+    def __sub__(self, other: _Tensor | float | int) -> _Tensor:
         if check.is_scalar(other):
             requires_grad = self.requires_grad
             result = _Tensor(self._array - other, requires_grad=requires_grad)
@@ -80,13 +84,13 @@ class _Tensor:
             raise RuntimeError(f"Other should be either a tensor or a scalar, got {type(other)}.")
         return result
 
-    def __rsub__(self, other):
+    def __rsub__(self, other: _Tensor | float | int) -> _Tensor:
         return -1 * (self - other)
 
-    def __neg__(self):
+    def __neg__(self) -> _Tensor:
         return self.__mul__(-1)
     
-    def __mul__(self, other):
+    def __mul__(self, other: _Tensor | float | int) -> _Tensor:
         if check.is_scalar(other):
             requires_grad = self.requires_grad
             result = _Tensor(self._array * other, requires_grad=requires_grad)
@@ -101,10 +105,10 @@ class _Tensor:
             raise RuntimeError(f"Other should be either a tensor or a scalar, got {type(other)}.")
         return result
 
-    def __rmul__(self, other):
+    def __rmul__(self, other: _Tensor | float | int) -> _Tensor:
         return self.__mul__(other)
 
-    def __truediv__(self, other):
+    def __truediv__(self, other: _Tensor | float | int) -> _Tensor:
         if check.is_scalar(other):
             requires_grad = self.requires_grad
             result = _Tensor(self._array / other, requires_grad=requires_grad)
@@ -119,7 +123,7 @@ class _Tensor:
             raise RuntimeError(f"Other should be either a tensor or a scalar, got {type(other)}.")
         return result
 
-    def __rtruediv__(self, other):
+    def __rtruediv__(self, other: float | int) -> _Tensor:
         if check.is_scalar(other):
             requires_grad = self.requires_grad
             result = _Tensor(other / self._array, requires_grad=requires_grad)
@@ -129,7 +133,7 @@ class _Tensor:
             raise RuntimeError(f"Other should be a scalar, got {type(other)}.")
         return result
 
-    def __pow__(self, other):
+    def __pow__(self, other: float | int) -> _Tensor:
         if check.is_scalar(other):
             requires_grad = self.requires_grad
             result = _Tensor(self._array ** other, requires_grad=requires_grad)
@@ -139,7 +143,25 @@ class _Tensor:
             raise RuntimeError(f"Other should be a scalar, got {type(other)}.")
         return result
     
-    def matmul(self, other):
+    def matmul(self, other: _Tensor) -> _Tensor:
+        """
+        Matrix-multiply this tensor with another tensor.
+
+        Parameters
+        ----------
+        other : _Tensor
+            Right-hand side tensor.
+
+        Returns
+        -------
+        _Tensor
+            Result of the matrix multiplication.
+
+        Notes
+        -----
+        This method follows NumPy's ``matmul`` broadcasting rules and requires
+        both operands to be at least 1-dimensional.
+        """
         if isinstance(other, _Tensor):
             if other._array.ndim==0 or self._array.ndim==0:
                 raise RuntimeError(f"Both arguments to matmul need to be at least 1D, but got {len(other._array.shape)}D and {len(self._array.shape)}D.")
@@ -158,10 +180,23 @@ class _Tensor:
         else:
             raise RuntimeError(f"Other should be a tensor, got {type(other)}.")
 
-    def __matmul__(self, other):
+    def __matmul__(self, other: _Tensor) -> _Tensor:
         return self.matmul(other)
 
-    def reshape(self, *shape):
+    def reshape(self, *shape: int) -> _Tensor:
+        """
+        Return a reshaped view of the tensor.
+
+        Parameters
+        ----------
+        *shape : int
+            Target shape. At most one dimension may be ``-1``.
+
+        Returns
+        -------
+        _Tensor
+            Reshaped tensor view.
+        """
         # Return a view of the input array with given shape
         # Share the same data buffer as the original Tensor
         result = _Tensor(self._array.reshape(*shape), requires_grad=self.requires_grad)
@@ -169,7 +204,22 @@ class _Tensor:
             result.node_id = dag.create_node(parents_id=[self.node_id], operation=operations.Reshape(shape=self._array.shape), result=result)
         return result
 
-    def mean(self, dim = None, keepdims = False):
+    def mean(self, dim: int | tuple[int, ...] | None = None, keepdims: bool = False) -> _Tensor:
+        """
+        Compute the mean of the tensor along one or more axes.
+
+        Parameters
+        ----------
+        dim : int or tuple of int, optional
+            Axis or axes to reduce. If omitted, all dimensions are reduced.
+        keepdims : bool, default=False
+            Whether reduced dimensions are retained with size 1.
+
+        Returns
+        -------
+        _Tensor
+            Tensor containing the reduced mean.
+        """
         # dim is int or tuple of ints
         if isinstance(dim, int):
             dim = (dim,)
@@ -193,7 +243,22 @@ class _Tensor:
             )
         return result
 
-    def sum(self, dim = None, keepdims = False):
+    def sum(self, dim: int | tuple[int, ...] | None = None, keepdims: bool = False) -> _Tensor:
+        """
+        Compute the sum of the tensor along one or more axes.
+
+        Parameters
+        ----------
+        dim : int or tuple of int, optional
+            Axis or axes to reduce. If omitted, all dimensions are reduced.
+        keepdims : bool, default=False
+            Whether reduced dimensions are retained with size 1.
+
+        Returns
+        -------
+        _Tensor
+            Tensor containing the reduced sum.
+        """
         if dim is None:
             # avoid backprop error is keepdims is True and dim = None
             dim = tuple(np.arange(len(self.shape)))
@@ -212,10 +277,25 @@ class _Tensor:
         return result
 
     @property
-    def shape(self):
+    def shape(self) -> tuple[int, ...]:
+        """tuple of int: Shape of the underlying tensor array."""
         return self._array.shape
 
-    def unsqueeze(self, *dim):
+    def unsqueeze(self, *dim: int) -> _Tensor:
+        """
+        Insert one or more singleton dimensions.
+
+        Parameters
+        ----------
+        *dim : int
+            Positions where singleton dimensions are inserted. If omitted, a
+            singleton dimension is inserted at axis 0.
+
+        Returns
+        -------
+        _Tensor
+            Tensor with expanded dimensionality.
+        """
         if len(dim) == 0:
             dim = 0
         result = _Tensor(np.expand_dims(self._array, axis=dim), requires_grad=self.requires_grad)
@@ -223,7 +303,21 @@ class _Tensor:
             result.node_id = dag.create_node(parents_id=[self.node_id], operation=operations.ExpandDims(dim=dim), result=result)
         return result
 
-    def squeeze(self, *dim):
+    def squeeze(self, *dim: int) -> _Tensor:
+        """
+        Remove singleton dimensions from the tensor.
+
+        Parameters
+        ----------
+        *dim : int, optional
+            Specific singleton dimensions to remove. If omitted, all singleton
+            dimensions are removed.
+
+        Returns
+        -------
+        _Tensor
+            Tensor with squeezed dimensionality.
+        """
         if len(dim) == 0:
             dim = None
         result = _Tensor(np.squeeze(self._array, axis=dim), requires_grad=self.requires_grad)
@@ -231,25 +325,76 @@ class _Tensor:
             result.node_id = dag.create_node(parents_id=[self.node_id], operation=operations.Squeeze(dim=dim), result=result)
         return result
 
-    def swapdims(self, dim1, dim2):
+    def swapdims(self, dim1: int, dim2: int) -> _Tensor:
+        """
+        Swap two dimensions of the tensor.
+
+        Parameters
+        ----------
+        dim1 : int
+            First dimension.
+        dim2 : int
+            Second dimension.
+
+        Returns
+        -------
+        _Tensor
+            Tensor with the two dimensions exchanged.
+        """
         result = _Tensor(np.swapaxes(self._array, dim1, dim2), requires_grad=self.requires_grad)
         if self.requires_grad:
             result.node_id = dag.create_node(parents_id=[self.node_id], operation=operations.SwapDims(dim1=dim1, dim2=dim2), result=result)
         return result
 
-    def T(self):
+    def T(self) -> _Tensor:
+        """
+        Swap the last two dimensions of the tensor.
+
+        Returns
+        -------
+        _Tensor
+            Tensor with the trailing two axes transposed.
+        """
         return self.swapdims(-1, -2)
 
     def clear_grad(self) -> None:
+        """
+        Clear the stored gradient of the tensor.
+
+        Returns
+        -------
+        None
+        """
         self.grad = None
 
-    def numpy(self, force=True):
+    def numpy(self, force: bool = True) -> np.ndarray:
+        """
+        Return the tensor contents as a NumPy array copy.
+
+        Parameters
+        ----------
+        force : bool, default=True
+            Compatibility argument. Only ``True`` is supported.
+
+        Returns
+        -------
+        numpy.ndarray
+            Copy of the underlying tensor data.
+        """
         # Always returns a copy unlike pytorch
         if not force:
             raise NotImplementedError("Unlike Pytorch, always force a copy, no shared storage.")
         return self._array.copy()
     
-    def float(self):
+    def float(self) -> _Tensor:
+        """
+        Cast the tensor to ``numpy.float32``.
+
+        Returns
+        -------
+        _Tensor
+            Tensor cast to ``float32``.
+        """
         requires_grad = self.requires_grad
         result = _Tensor(self._array.astype(np.float32, copy=False), requires_grad=requires_grad)
         if requires_grad:
@@ -260,7 +405,15 @@ class _Tensor:
             )
         return result
     
-    def double(self):
+    def double(self) -> _Tensor:
+        """
+        Cast the tensor to ``numpy.float64``.
+
+        Returns
+        -------
+        _Tensor
+            Tensor cast to ``float64``.
+        """
         requires_grad = self.requires_grad
         result = _Tensor(self._array.astype(np.float64, copy=False), requires_grad=requires_grad)
         if requires_grad:
@@ -271,7 +424,15 @@ class _Tensor:
             )
         return result
     
-    def int(self):
+    def int(self) -> _Tensor:
+        """
+        Cast the tensor to ``numpy.int32``.
+
+        Returns
+        -------
+        _Tensor
+            Tensor cast to ``int32``.
+        """
         requires_grad = self.requires_grad
         result = _Tensor(self._array.astype(np.int32, copy=False), requires_grad=requires_grad)
         if requires_grad:
@@ -282,7 +443,15 @@ class _Tensor:
             )
         return result
     
-    def long(self):
+    def long(self) -> _Tensor:
+        """
+        Cast the tensor to ``numpy.int64``.
+
+        Returns
+        -------
+        _Tensor
+            Tensor cast to ``int64``.
+        """
         requires_grad = self.requires_grad
         result = _Tensor(self._array.astype(np.int64, copy=False), requires_grad=requires_grad)
         if requires_grad:
@@ -293,7 +462,21 @@ class _Tensor:
             )
         return result
 
-    def to(self, dtype):
+    def to(self, dtype: Any) -> _Tensor:
+        """
+        Cast the tensor to a supported dtype.
+
+        Parameters
+        ----------
+        dtype : numpy.dtype or type
+            Target dtype. Supported values are ``numpy.float32``,
+            ``numpy.float64``, ``numpy.int32``, and ``numpy.int64``.
+
+        Returns
+        -------
+        _Tensor
+            Tensor cast to the requested dtype.
+        """
         # no-op
         if dtype == self.dtype:
             return self
@@ -310,18 +493,46 @@ class _Tensor:
             case _:
                 raise NotImplementedError(f"Unsupported dtype : {dtype}")
     
-    def __array__(self, dtype=None):
+    def __array__(self, dtype: Any = None) -> np.ndarray:
         # Numpy array interface, to support `numpy.asarray(tensor) -> ndarray`
         if dtype is None:
             return self.numpy()
         else:
             return self.numpy().astype(dtype, copy=False)
 
-    def detach(self):
+    def detach(self) -> _Tensor:
+        """
+        Return a tensor detached from the computation graph.
+
+        Notes
+        -----
+        This method is currently not implemented because the present graph
+        ownership model can leak memory when detached tensors are created.
+        """
         raise NotImplementedError("As implemented currently, it can lead to memory leaks.")
         return _Tensor(self._array, requires_grad=False)
 
-    def backward(self, vector = None, retain_graph = False):
+    def backward(self, vector: np.ndarray | None = None, retain_graph: bool = False) -> None:
+        """
+        Backpropagate gradients from this tensor.
+
+        Parameters
+        ----------
+        vector : numpy.ndarray, optional
+            Gradient of a scalar objective with respect to this tensor. This is
+            required when the tensor is not scalar.
+        retain_graph : bool, default=False
+            Whether to keep traversed graph nodes after the backward pass.
+
+        Returns
+        -------
+        None
+
+        Notes
+        -----
+        If ``vector`` is omitted, the tensor must be scalar and a gradient of
+        1 is used.
+        """
         # vector is the gradient the gradient of the differentiated function w.r.t. self
         # Expect a numpy array of same shape and dtype
         if vector is None and not np.prod(self._array.shape) == 1:
@@ -341,17 +552,30 @@ class _Tensor:
             self.acc_grad = np.float32(1.0)
         dag.backward(self.node_id, retain_graph=retain_graph)
 
-    def plot_dag(self, full_graph=False):
+    def plot_dag(self, full_graph: bool = False) -> None:
+        """
+        Render the computation graph rooted at this tensor.
+
+        Parameters
+        ----------
+        full_graph : bool, default=False
+            Whether to render the full global graph. Only the rooted subgraph
+            is currently supported.
+
+        Returns
+        -------
+        None
+        """
         dag.plot(self.node_id, full_graph)
 
 
-    def __str__(self):
+    def __str__(self) -> str:
         if not self.requires_grad:
             return f"eazygrad.tensor({self._array.tolist()}, dtype={self.dtype})"
         else:
             return f"eazygrad.tensor({self._array.tolist()}, dtype={self.dtype}, requires_grad={self.requires_grad})"
     
-    def __repr__(self):
+    def __repr__(self) -> str:
         # For printing nested tensor
         if not self.requires_grad:
             return f"eazygrad.tensor({self._array.tolist()}, dtype={self.dtype})"

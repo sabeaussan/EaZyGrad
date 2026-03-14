@@ -1,10 +1,25 @@
+from __future__ import annotations
+
 import numpy as np
 from ..utils import check
 from .._tensor import _Tensor
 from ..grad import operations, dag
 
 
-def relu(input):
+def relu(input: _Tensor) -> _Tensor:
+	"""
+	Apply the rectified linear unit activation elementwise.
+
+	Parameters
+	----------
+	input : _Tensor
+		Input tensor.
+
+	Returns
+	-------
+	_Tensor
+		Tensor with ``max(input, 0)`` applied elementwise.
+	"""
 	if not isinstance(input, _Tensor):
 		raise TypeError(f"Expected input to be an eazygrad tensor, got {type(input)}")
 	
@@ -15,13 +30,31 @@ def relu(input):
 	return result
 
 
-def _stable_sigmoid_pos(x):
+def _stable_sigmoid_pos(x: np.ndarray) -> np.ndarray:
 	return 1/(1+np.exp(-x))
 
-def _stable_sigmoid_neg(x):
+def _stable_sigmoid_neg(x: np.ndarray) -> np.ndarray:
 	return np.exp(x)/(1+np.exp(x))
 
-def sigmoid(input):
+def sigmoid(input: _Tensor) -> _Tensor:
+	"""
+	Apply the sigmoid activation elementwise.
+
+	Parameters
+	----------
+	input : _Tensor
+		Input tensor.
+
+	Returns
+	-------
+	_Tensor
+		Tensor containing values in the interval ``[0, 1]``.
+
+	Notes
+	-----
+	The implementation uses a numerically stable formulation based on the
+	sign of the input.
+	"""
 	if not isinstance(input, _Tensor):
 		raise TypeError(f"Expected input to be an eazygrad tensor, got {type(input)}")
 
@@ -41,7 +74,20 @@ def sigmoid(input):
 	return result
 
 
-def tanh(input):
+def tanh(input: _Tensor) -> _Tensor:
+	"""
+	Apply the hyperbolic tangent activation elementwise.
+
+	Parameters
+	----------
+	input : _Tensor
+		Input tensor.
+
+	Returns
+	-------
+	_Tensor
+		Tensor containing ``tanh(input)``.
+	"""
 	if not isinstance(input, _Tensor):
 		raise TypeError(f"Expected input to be an eazygrad tensor, got {type(input)}")
 
