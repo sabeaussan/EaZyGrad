@@ -84,7 +84,7 @@ class ComputationGraph:
 						if parent.result.requires_grad:
 							grad = ez.check.broadcasted_shape(grad, parent.result)
 							if parent.result.grad is None:
-								parent.result.grad = grad
+								parent.result.grad = grad.copy()
 							else:
 								parent.result.grad += grad
 							parent.result.acc_grad += grad
