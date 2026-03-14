@@ -9,9 +9,11 @@ class _Tensor:
         self._array = check.input_array_type(array, dtype)
         self.ndim = self._array.ndim
         self.dtype = self._array.dtype
+        # Does not allow grad computation for integer tensors
         if requires_grad and not np.issubdtype(self.dtype, np.floating):
             raise TypeError("Only tensors with floating point dtype can require gradients.")
         self.requires_grad = requires_grad and dag.grad_enable
+        # Grad atttributes. acc_grad is a temporary buffer
         self.grad = None
         self.acc_grad = np.float32(0.0)
         # the node_id reflects the creation node of the tensor
@@ -34,29 +36,22 @@ class _Tensor:
                 raise e
 
     def __getitem__(self, key):
+        # overloads the array[key] operator
         result = _Tensor(self._array[key], requires_grad=self.requires_grad)
         if self.requires_grad:
             result.node_id = dag.create_node(parents_id=[self.node_id], operation=operations.Slice(shape=self._array.shape, key=key, dtype=result.dtype), result=result)
         return result
 
-    def __add__(self, other, out=None):
+    def __add__(self, other):
         if check.is_scalar(other):
             requires_grad = self.requires_grad
-            if out is not None:
-                np.add(self._array, other, out=out)
-                result_arr = out
-            else:
-                result_arr = np.add(self._array, other)
+            result_arr = np.add(self._array, other)
             result = _Tensor(result_arr, requires_grad=requires_grad)
             if requires_grad:
                 result.node_id = dag.create_node(parents_id=[self.node_id], operation=operations.Add(arr=self._array.shape, dtype=result.dtype), result=result)
         elif isinstance(other, _Tensor):
             requires_grad = self.requires_grad or other.requires_grad
-            if out is not None:
-                np.add(self._array, other._array, out=out)
-                result_arr = out
-            else:
-                result_arr = np.add(self._array, other._array)
+            result_arr = np.add(self._array, other._array)
             result = _Tensor(result_arr, requires_grad=requires_grad)
             if requires_grad:
                 result.node_id = dag.create_node(parents_id=[self.node_id, other.node_id], operation=operations.Add(shape1=self._array.shape, shape2=other._array.shape, dtype=result.dtype), result=result)
@@ -142,18 +137,13 @@ class _Tensor:
         return result
     
     # @line_profiler.profile
-    def matmul(self, other, out=None):
+    def matmul(self, other):
         if isinstance(other, _Tensor):
             if other._array.ndim==0 or self._array.ndim==0:
                 raise RuntimeError(f"Both arguments to matmul need to be at least 1D, but got {len(other._array.shape)}D and {len(self._array.shape)}D.")
             requires_grad = self.requires_grad or other.requires_grad
             # Numpy handles all the broadcasting rules for matmul and different shape cases
-            if out is not None:
-                # out is a numpy array 
-                np.matmul(self._array, other._array, out=out)
-                result_arr = out
-            else:
-                result_arr = np.matmul(self._array, other._array)
+            result_arr = np.matmul(self._array, other._array)
             result = _Tensor(result_arr, requires_grad=requires_grad)
             # Need to select the right operation depending on the shape of the two arrays
             if requires_grad:
