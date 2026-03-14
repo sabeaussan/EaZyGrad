@@ -56,15 +56,11 @@ class Operation:
 class Add(Operation):
 
 	def backward(self, grad_output):
-		if len(self.context.keys())==1:
-			return (grad_output,)
 		return (grad_output, grad_output)
 
 class Sub(Operation):
 
 	def backward(self, grad_output):
-		if len(self.context.keys())==1:
-			return (grad_output,)
 		# tensor - tensor
 		return (grad_output, -grad_output)
 
