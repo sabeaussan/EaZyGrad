@@ -5,6 +5,7 @@ import eazygrad.nn as nn
 
 def _build_mlp(input_dim, output_dim, hidden_dim, n_layer):
     layers = nn.ModuleList()
+    # Build hidden blocks explicitly so examples can inspect the layer list.
     layers.append(nn.Linear(n_in=input_dim, n_out=hidden_dim))
     for _ in range(n_layer - 1):
         layers.append(nn.Linear(n_in=hidden_dim, n_out=hidden_dim))
@@ -68,6 +69,8 @@ class ActorCritic(nn.Module):
         state_t = ez.from_numpy(state).unsqueeze(0)
         logits = self.actor(state_t)
         probs = ez.softmax(logits, dim=-1).squeeze(0).numpy()
+        # Sample in NumPy space because action selection is intentionally kept
+        # outside the autograd graph.
         action = int(np.random.choice(self.actions, p=probs))
         logp = float(self.get_logprob(logits, action).numpy())
         value = float(self.critic(state_t).squeeze(0).squeeze(0).numpy())
@@ -77,6 +80,7 @@ class ActorCritic(nn.Module):
         if logits.ndim != 2:
             raise ValueError(f"get_logprob expects logits with shape [batch, act_dim], got {logits.shape}.")
 
+        # Compute log-probabilities via logsumexp for numerical stability.
         logZ = ez.logsumexp(logits, dim=-1)
         batch_size = logits.shape[0]
 
@@ -100,6 +104,7 @@ class ActorCritic(nn.Module):
         return float(v.squeeze(0).squeeze(0).numpy())
 
     def evaluate_actions(self, states, actions):
+        # PPO repeatedly re-evaluates old actions under the current policy.
         states_t = ez.from_numpy(np.asarray(states, dtype=np.float32))
         logits = self.actor(states_t)
         values = self.critic(states_t).reshape(-1)

@@ -16,6 +16,8 @@ def compute_ppo_losses(actor_critic, batch: RolloutBatch, indices, config):
     logits, logp, values = actor_critic.evaluate_actions(states, actions)
     ratio = ez.exp(logp - old_logps)
     clipped_ratio = ez.clip(ratio, 1.0 - config.clip_eps, 1.0 + config.clip_eps)
+    # PPO keeps the smaller of the unclipped and clipped objectives to prevent
+    # overly large policy updates.
     surrogate = ez.min(ratio * advantages, clipped_ratio * advantages)
     actor_loss = -surrogate.mean()
 
@@ -23,6 +25,7 @@ def compute_ppo_losses(actor_critic, batch: RolloutBatch, indices, config):
     critic_loss = (value_error * value_error).mean()
 
     probs = ez.softmax(logits, dim=-1)
+    # Encourage exploration by penalizing overly sharp action distributions.
     entropy = -(probs * ez.log(probs + 1e-8)).sum(dim=-1).mean()
 
     total_loss = actor_loss + config.critic_coef * critic_loss - config.entropy_coef * entropy
@@ -57,6 +60,8 @@ def train(env, actor_critic, config: PPOConfig):
         for _ in range(config.ppo_epochs):
             np.random.shuffle(permutation)
             for start in range(0, num_steps, config.minibatch_size):
+                # Reuse the same rollout for several epochs, but reshuffle the
+                # minibatches each time to decorrelate updates.
                 indices = permutation[start:start + config.minibatch_size]
                 if len(indices) == 0:
                     continue

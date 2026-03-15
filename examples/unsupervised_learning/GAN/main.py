@@ -86,6 +86,7 @@ def discriminator_loss(discriminator, real_images, fake_images):
     real_logits = discriminator(real_images)
     fake_logits = discriminator(fake_images)
 
+    # A slightly softened real label stabilizes the discriminator early on.
     real_targets = ez.ones(real_logits.shape[0], 1, requires_grad=False) * np.float32(REAL_LABEL)
     fake_targets = ez.zeros(fake_logits.shape[0], 1, requires_grad=False)
 
@@ -154,6 +155,8 @@ def train():
 
             noise = sample_noise(BATCH_SIZE, LATENT_DIM)
             with ez.no_grad_ctx():
+                # The discriminator step should not retain a generator graph for
+                # fake samples it treats as constants.
                 fake_batch = generator(noise)
 
             d_loss = discriminator_loss(discriminator, real_batch, fake_batch)
@@ -161,6 +164,7 @@ def train():
             d_loss.backward()
             d_optimizer.step()
 
+            # Re-sample noise so the generator update is based on a fresh graph.
             noise = sample_noise(BATCH_SIZE, LATENT_DIM)
             fake_batch = generator(noise)
             g_loss = generator_loss(discriminator, fake_batch)

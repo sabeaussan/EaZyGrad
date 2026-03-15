@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import numpy as np
 from ..utils import check
 from .._tensor import _Tensor
@@ -6,13 +8,13 @@ from .math import exp
 import numba as nb
 # import line_profiler
 
-def _validate_dim_arg(dim):
+def _validate_dim_arg(dim: int) -> None:
 	if not isinstance(dim, int):
 		raise ValueError("Dim argument should be an integer, got {}".format(type(dim)))
 
 # generic but temporary implementation of logsumexp
 # Slow, will be replaced with a numba friendly version
-def _logsumexp_generic(f64_array, dim):
+def _logsumexp_generic(f64_array: np.ndarray, dim: int) -> np.ndarray:
 	M = f64_array.max(axis=dim, keepdims=True)
 	logsumexp = np.exp(f64_array-M).sum(axis=dim, keepdims=True)
 	logsumexp = np.log(logsumexp)
@@ -20,7 +22,7 @@ def _logsumexp_generic(f64_array, dim):
 	return logsumexp
 
 @nb.njit(cache=True, fastmath=True, parallel=True)
-def _fast_logsumexp(x2d):
+def _fast_logsumexp(x2d: np.ndarray) -> np.ndarray:
     N, K = x2d.shape
     out = np.empty(N, dtype=np.float64)
 
@@ -46,7 +48,24 @@ def _fast_logsumexp(x2d):
 
     return out
 
-def logsumexp(input, dim, keepdims=False):
+def logsumexp(input: _Tensor, dim: int, keepdims: bool = False) -> _Tensor:
+	"""
+	Compute ``log(sum(exp(input)))`` in a numerically stable way.
+
+	Parameters
+	----------
+	input : _Tensor
+		Input tensor.
+	dim : int
+		Axis along which the reduction is performed.
+	keepdims : bool, default=False
+		Whether to keep the reduced dimension in the output.
+
+	Returns
+	-------
+	_Tensor
+		Reduced tensor after applying the log-sum-exp operation.
+	"""
 	if not isinstance(input, _Tensor):
 		raise TypeError(f"Expected input to be an eazygrad tensor, got {type(input)}")
 
@@ -107,7 +126,22 @@ def logsumexp(input, dim, keepdims=False):
 	return result 
 
 
-def softmax(input, dim):
+def softmax(input: _Tensor, dim: int) -> _Tensor:
+	"""
+	Compute the softmax of a tensor along a given axis.
+
+	Parameters
+	----------
+	input : _Tensor
+		Input tensor.
+	dim : int
+		Axis along which the softmax is computed.
+
+	Returns
+	-------
+	_Tensor
+		Tensor of normalized exponentials.
+	"""
 	if not isinstance(input, _Tensor):
 		raise TypeError(f"Expected input to be an eazygrad tensor, got {type(input)}")
 	
@@ -120,7 +154,22 @@ def softmax(input, dim):
 
 	return result
 
-def log_softmax(input, dim):
+def log_softmax(input: _Tensor, dim: int) -> _Tensor:
+	"""
+	Compute the logarithm of the softmax along a given axis.
+
+	Parameters
+	----------
+	input : _Tensor
+		Input tensor.
+	dim : int
+		Axis along which the log-softmax is computed.
+
+	Returns
+	-------
+	_Tensor
+		Tensor containing log-probabilities.
+	"""
 	if not isinstance(input, _Tensor):
 		raise TypeError(f"Expected input to be an eazygrad tensor, got {type(input)}")
 	

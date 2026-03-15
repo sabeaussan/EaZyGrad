@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import numpy as np
 from .math import log
 from ..utils import check
@@ -5,15 +7,66 @@ from .._tensor import _Tensor
 from ..grad import operations, dag
 from .specials import logsumexp
 
-def mse_loss(predicted, target):
+def mse_loss(predicted: _Tensor, target: _Tensor) -> _Tensor:
+	"""
+	Compute the mean squared error loss.
+
+	Parameters
+	----------
+	predicted : _Tensor
+		Predicted values.
+	target : _Tensor
+		Target values with the same shape as ``predicted``.
+
+	Returns
+	-------
+	_Tensor
+		Scalar loss tensor.
+	"""
 	return ((predicted - target) ** 2).mean()
 
-def nll_loss(predicted, target):
+def nll_loss(predicted: _Tensor, target: _Tensor) -> _Tensor:
+	"""
+	Compute the negative log-likelihood loss from log-probabilities.
+
+	Parameters
+	----------
+	predicted : _Tensor
+		Log-probabilities of shape ``(N, C)``.
+	target : _Tensor
+		Integer class indices of shape ``(N,)``.
+
+	Returns
+	-------
+	_Tensor
+		Scalar loss tensor.
+	"""
 	correct_probs = predicted[np.arange(predicted.shape[0]), target._array]
 	return -correct_probs.mean()
 
 
-def bce_with_logits_loss(logits, target):
+def bce_with_logits_loss(logits: _Tensor, target: _Tensor) -> _Tensor:
+	"""
+	Compute binary cross-entropy loss from unnormalized logits.
+
+	Parameters
+	----------
+	logits : _Tensor
+		Input logits.
+	target : _Tensor
+		Target tensor with values typically in ``[0, 1]`` and the same shape as
+		``logits``.
+
+	Returns
+	-------
+	_Tensor
+		Scalar loss tensor.
+
+	Notes
+	-----
+	This implementation uses a numerically stable formulation and internally
+	averages the per-element loss.
+	"""
 
 	if not isinstance(logits, _Tensor):
 		raise TypeError(f"Expected predicted to be an eazygrad tensor, got {type(logits)}")
@@ -36,10 +89,45 @@ def bce_with_logits_loss(logits, target):
 		)
 	return result.mean()
 
-def bce_loss(predicted, target):
+def bce_loss(predicted: _Tensor, target: _Tensor) -> _Tensor:
+	"""
+	Compute binary cross-entropy loss from probabilities.
+
+	Parameters
+	----------
+	predicted : _Tensor
+		Predicted probabilities.
+	target : _Tensor
+		Target tensor with the same shape as ``predicted``.
+
+	Returns
+	-------
+	_Tensor
+		Scalar loss tensor.
+	"""
 	return -(target * log(predicted) + (1 - target) * log(1 - predicted)).mean()
 
-def cross_entropy_loss(predicted, target):
+def cross_entropy_loss(predicted: _Tensor, target: _Tensor) -> _Tensor:
+	"""
+	Compute cross-entropy loss from class logits.
+
+	Parameters
+	----------
+	predicted : _Tensor
+		Logits of shape ``(N, C)``.
+	target : _Tensor
+		Targets of shape ``(N,)`` for integer class indices or shape ``(N, C)``
+		for soft targets.
+
+	Returns
+	-------
+	_Tensor
+		Scalar loss tensor.
+
+	Notes
+	-----
+	The loss is computed with a numerically stable log-sum-exp formulation.
+	"""
 	# Expect predicted to be Tensor with logits shape (N, C)
 	# target should be Tensor with class indices or target distribution
 	# -* if target is class indices shape is (N,)

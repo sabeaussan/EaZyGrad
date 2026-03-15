@@ -61,6 +61,8 @@ def compute_gae_and_returns(trajectory, actor_critic, gamma=0.99, gae_lambda=0.9
     bootstrap_value = 0.0
     last_step = trajectory[-1]
     if last_step.truncated and not last_step.terminated:
+        # Time-limit truncation is not a terminal failure state, so bootstrap
+        # from the critic instead of forcing the final value to zero.
         bootstrap_value = actor_critic.get_value(last_step.next_state)
 
     gae = 0.0
@@ -108,6 +110,7 @@ def build_rollout_batch(trajectories, actor_critic, gamma=0.99, gae_lambda=0.95)
     old_logps = np.asarray(old_logps, dtype=np.float32)
     returns = np.asarray(returns, dtype=np.float32)
     advantages = np.asarray(advantages, dtype=np.float32)
+    # Normalize advantages once per rollout to keep PPO updates well scaled.
     advantages = (advantages - advantages.mean()) / (advantages.std() + 1e-8)
 
     return RolloutBatch(

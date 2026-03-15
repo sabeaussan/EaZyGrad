@@ -1,3 +1,7 @@
+from __future__ import annotations
+
+from typing import Any
+
 import eazygrad as ez
 import numpy as np
 import heapq
@@ -8,10 +12,10 @@ import sys
 class Node:
 	# Node of the computation graph
 	def __init__(self, 
-				 parents_id, 
-				 operation, 
-				 result, 
-				 is_leaf = False):
+				 parents_id: list[int | None], 
+				 operation: Any, 
+				 result: Any, 
+				 is_leaf: bool = False) -> None:
 
 		self.parents_id = parents_id
 		self.operation = operation
@@ -20,7 +24,7 @@ class Node:
 
 class ComputationGraph:
 
-	def __init__(self):
+	def __init__(self) -> None:
 		# the computation graph
 		# map between node_id and list(parent_id)
 		self.dag = {}
@@ -30,18 +34,18 @@ class ComputationGraph:
 		self.node_map = {}
 		self.grad_enable = True
 
-	def clear(self):
+	def clear(self) -> None:
 		# Clear all nodes
 		self.dag = {}
 		self.node_count = -1
 		self.node_map = {}
 
-	def clear_node(self, node_id):
+	def clear_node(self, node_id: int) -> None:
 		# clear a specific node 
 		del self.dag[node_id]
 		del self.node_map[node_id]
 
-	def create_node(self, parents_id, operation, result, is_leaf= False):
+	def create_node(self, parents_id: list[int | None], operation: Any, result: Any, is_leaf: bool = False) -> int | None:
 		if not self.grad_enable:
 			return None
 		# Increase node counter for id
@@ -54,7 +58,7 @@ class ComputationGraph:
 		self._register_node(self.node_count, parents_id)
 		return self.node_count
 
-	def _is_still_required(self, node, to_delete):
+	def _is_still_required(self, node: int, to_delete: list[int]) -> bool:
 		for result, parents in self.dag.items():
 			if parents is None:
 				continue
@@ -62,12 +66,38 @@ class ComputationGraph:
 				return True
 		return False
 
-	def _register_node(self, node_id, parents_id):
+	def _register_node(self, node_id: int, parents_id: list[int | None]) -> None:
 		# key : resulting node id
 		# values : parents nodes
 		self.dag[node_id] = parents_id
 
-	def backward(self, root_node_id, debug = False, retain_graph = False):
+	def backward(self, root_node_id: int, debug: bool = False, retain_graph: bool = False) -> None:
+		"""
+		Backpropagate gradients through the computation graph.
+
+		Parameters
+		----------
+		root_node_id : int
+			Identifier of the root node from which backpropagation starts.
+		debug : bool, default=False
+			Reserved debug flag. Currently unused.
+		retain_graph : bool, default=False
+			If ``True``, keep traversed non-leaf nodes in the graph after the
+			backward pass. If ``False``, traversed non-leaf nodes are removed as
+			they are processed.
+
+		Returns
+		-------
+		None
+
+		Notes
+		-----
+		The method consumes the accumulated gradient stored in each visited
+		node's ``result.acc_grad`` field and distributes gradients to parent
+		nodes using the local backward rule of each recorded operation.
+		Broadcasted gradients are reduced to match parent tensor shapes before
+		being accumulated.
+		"""
 		pending_nodes = []
 		heapq.heappush(pending_nodes, -root_node_id)
 		while pending_nodes:
@@ -96,7 +126,7 @@ class ComputationGraph:
 							heapq.heappush(pending_nodes, -parent_id)
 							
 
-	def plot(self, root_node_id, full_graph):
+	def plot(self, root_node_id: int, full_graph: bool) -> None:
 		# check if graphviz is installed
 		check.graphviz()
 		if full_graph:
