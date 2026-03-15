@@ -1,4 +1,5 @@
 import random
+from pathlib import Path
 
 import numpy as np
 
@@ -6,10 +7,11 @@ import eazygrad as ez
 import eazygrad.nn as nn
 from eazygrad.data.dataloader import Dataloader
 from eazygrad.grad import dag
+from plot import capture_model_state, restore_model_state, save_prediction_grid, save_training_curves
 
 SEED = 100
 BATCH_SIZE = 256
-N_EPOCH = 100
+N_EPOCH = 10
 LR = 1e-3
 INPUT_DIM = 28 * 28
 HIDDEN_DIM = 128
@@ -77,10 +79,20 @@ def main():
     test_dataset = ez.data.MNISTDataset(train=False)
     train_loader = Dataloader(train_dataset, batch_size=BATCH_SIZE, shuffle=True, drop_last=True)
     test_loader = Dataloader(test_dataset, batch_size=BATCH_SIZE, shuffle=False, drop_last=False)
+    figures_dir = Path(__file__).resolve().parent / "figures"
 
     model = Model(in_dim=INPUT_DIM, out_dim=OUTPUT_DIM, h_dim=HIDDEN_DIM, n_layer=N_LAYER)
     # visualize_dag(model)
     optimizer = ez.SGD(model.parameters(), lr=LR)
+    history = {
+        "epoch": [],
+        "train_loss": [],
+        "train_acc": [],
+        "test_loss": [],
+        "test_acc": [],
+    }
+    best_test_acc = -np.inf
+    best_state = capture_model_state(model)
 
     print("Training EaZyGrad MLP on MNIST")
     for epoch in range(N_EPOCH):
@@ -108,12 +120,33 @@ def main():
             n_batches += 1
 
         train_acc = correct / total if total > 0 else 0.0
+        train_loss = epoch_loss / n_batches
         test_loss, test_acc = evaluate(model, test_loader)
+        history["epoch"].append(epoch)
+        history["train_loss"].append(train_loss)
+        history["train_acc"].append(train_acc)
+        history["test_loss"].append(test_loss)
+        history["test_acc"].append(test_acc)
+        if test_acc > best_test_acc:
+            best_test_acc = test_acc
+            best_state = capture_model_state(model)
         print(
             f"epoch={epoch:04d} "
-            f"train_loss={epoch_loss / n_batches:.6f} train_acc={train_acc:.4f} "
+            f"train_loss={train_loss:.6f} train_acc={train_acc:.4f} "
             f"test_loss={test_loss:.6f} test_acc={test_acc:.4f}"
         )
+
+    restore_model_state(model, best_state)
+    curves_path = save_training_curves(history, figures_dir)
+    preds_path = save_prediction_grid(
+        model=model,
+        test_images=test_dataset.data,
+        test_labels=test_dataset.targets,
+        input_dim=INPUT_DIM,
+        output_dir=figures_dir,
+    )
+    print(f"Saved training curves to {curves_path}")
+    print(f"Saved test predictions to {preds_path}")
 
 
 if __name__ == "__main__":
