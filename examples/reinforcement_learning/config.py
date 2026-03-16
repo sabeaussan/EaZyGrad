@@ -9,7 +9,7 @@ class PPOConfig:
     critic_coef: float = 0.5
     entropy_coef: float = 0.01
     lr: float = 3e-4
-    n_iter: int = 500
+    n_iter: int = 30
     rollout_episodes: int = 10
     ppo_epochs: int = 4
     minibatch_size: int = 64

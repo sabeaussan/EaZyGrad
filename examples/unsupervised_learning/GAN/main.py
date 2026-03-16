@@ -71,11 +71,13 @@ class Discriminator(MLP):
 
 
 def preprocess_images(images):
+    # Match the generator output range of tanh: [-1, 1].
     flat = images.reshape(images.shape[0], -1).astype(np.float32)
     return (flat / 127.5) - 1.0
 
 
 def sample_noise(batch_size, latent_dim):
+    # Noise stays outside autograd; the generator receives it as fixed input.
     return ez.tensor(
         np.random.randn(batch_size, latent_dim).astype(np.float32),
         requires_grad=False,
@@ -102,6 +104,7 @@ def generator_loss(discriminator, fake_images):
 
 
 def make_image_grid(images, nrow):
+    # Convert generator outputs back to displayable grayscale pixels.
     images = np.asarray(images, dtype=np.float32).reshape(-1, 28, 28)
     images = np.clip((images + 1.0) * 127.5, 0, 255).astype(np.uint8)
     n_images = images.shape[0]
@@ -143,6 +146,7 @@ def train():
     g_optimizer = ez.Adam(generator.parameters(), lr=G_LR, betas=(0.5, 0.999))
     d_optimizer = ez.Adam(discriminator.parameters(), lr=D_LR, betas=(0.5, 0.999))
 
+    # Save an untrained baseline so progress is easy to inspect visually.
     save_samples(generator, output_dir=output_dir, epoch=0)
 
     for epoch in range(1, N_EPOCHS + 1):

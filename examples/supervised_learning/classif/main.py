@@ -75,6 +75,7 @@ def main():
     np.random.seed(SEED)
     random.seed(SEED)
 
+    # Build separate loaders so test metrics are always computed on held-out data.
     train_dataset = ez.data.MNISTDataset(train=True)
     test_dataset = ez.data.MNISTDataset(train=False)
     train_loader = Dataloader(train_dataset, batch_size=BATCH_SIZE, shuffle=True, drop_last=True)
@@ -92,6 +93,8 @@ def main():
         "test_acc": [],
     }
     best_test_acc = -np.inf
+    # Keep a copy of the best parameters so plots reflect the best checkpoint,
+    # not just the final epoch.
     best_state = capture_model_state(model)
 
     print("Training EaZyGrad MLP on MNIST")
@@ -136,6 +139,7 @@ def main():
             f"test_loss={test_loss:.6f} test_acc={test_acc:.4f}"
         )
 
+    # Restore the best checkpoint before generating qualitative examples.
     restore_model_state(model, best_state)
     curves_path = save_training_curves(history, figures_dir)
     preds_path = save_prediction_grid(

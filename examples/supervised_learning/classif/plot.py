@@ -8,6 +8,7 @@ from eazygrad.grad import dag
 
 
 def capture_model_state(model):
+    # Store plain NumPy copies so training can keep mutating live parameters.
     return [param.numpy() for param in model.parameters()]
 
 
@@ -21,6 +22,7 @@ def _predict(model, images, input_dim):
     prev_grad_state = dag.grad_enable
     dag.grad_enable = False
     try:
+        # Reuse the training input format: flatten [N, 28, 28] into [N, 784].
         x = ez.from_numpy(images.astype(np.float32), requires_grad=False).reshape(-1, input_dim)
         return model(x).numpy()
     finally:
@@ -31,6 +33,7 @@ def save_training_curves(history, output_dir):
     output_dir = Path(output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
 
+    # Save loss and accuracy side by side so the final figure is easy to scan.
     fig, axes = plt.subplots(1, 2, figsize=(12, 5), constrained_layout=True)
     epochs = history["epoch"]
 
@@ -72,6 +75,7 @@ def save_prediction_grid(model, test_images, test_labels, input_dim, output_dir,
 
     # Show a representative sample of the test set instead of over-sampling
     # mistakes, otherwise a high-accuracy model can still look visually poor.
+    # Fix the sampling seed so reruns produce the same visual panel.
     rng = np.random.default_rng(0)
     selected = rng.choice(len(test_labels), size=min(n_samples, len(test_labels)), replace=False)
 

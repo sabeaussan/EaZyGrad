@@ -6,6 +6,10 @@ from config import PPOConfig
 from rollout import RolloutBatch, build_rollout_batch, collect_trajectories
 
 
+def _capture_model_state(model):
+    return [param.numpy() for param in model.parameters()]
+
+
 def compute_ppo_losses(actor_critic, batch: RolloutBatch, indices, config):
     states = batch.states[indices]
     actions = batch.actions[indices]
@@ -37,6 +41,7 @@ def train(env, actor_critic, config: PPOConfig):
     avg_rewards = []
     std_rewards = []
     best_avg_reward = -np.inf
+    best_state = _capture_model_state(actor_critic)
 
     for it in range(config.n_iter):
         trajectories = collect_trajectories(
@@ -85,6 +90,7 @@ def train(env, actor_critic, config: PPOConfig):
 
         if avg_r > best_avg_reward:
             best_avg_reward = avg_r
+            best_state = _capture_model_state(actor_critic)
             print(f"New best avg return: {best_avg_reward:.2f}")
 
         if (it + 1) % 5 == 0:
@@ -95,4 +101,4 @@ def train(env, actor_critic, config: PPOConfig):
                 f"| entropy {last_entropy_loss.numpy() if last_entropy_loss is not None else 'n/a'}"
             )
 
-    return avg_rewards, std_rewards
+    return avg_rewards, std_rewards, best_state
