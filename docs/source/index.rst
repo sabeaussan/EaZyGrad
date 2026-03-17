@@ -7,24 +7,13 @@ EaZyGrad documentation
 ======================
 
 .. toctree::
-   :maxdepth: 1
-   :caption: API Reference
-
-   eazygrad
-
-.. toctree::
-   :maxdepth: 1
-   :caption: By domain
-
-   eazygrad.nn
-   eazygrad.functions
-   eazygrad.data
-   eazygrad.grad
-   eazygrad.utils
-
-.. toctree::
-   :maxdepth: 1
-   :caption: Full module index
-   :hidden:
+   :maxdepth: 2
+   :caption: Contents:
 
    modules
+   eazygrad
+   eazygrad.nn
+   eazygrad.utils
+   eazygrad.data
+   eazygrad.functions
+   eazygrad.grad
