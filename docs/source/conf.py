@@ -16,17 +16,26 @@ release = '0.0.1'
 
 extensions = [
     'sphinx.ext.autodoc',
+    'sphinx.ext.autosummary',
     'sphinx.ext.napoleon',
     'sphinx.ext.duration',
+    'sphinx.ext.intersphinx',
+    'sphinx.ext.viewcode',
 ]
 
-poleon_google_docstring = False
+autosummary_generate = True
+autosummary_imported_members = True
+
+napoleon_google_docstring = False
 napoleon_use_param = False
 napoleon_use_ivar = True
 
+intersphinx_mapping = {
+    'python': ('https://docs.python.org/3', None),
+}
+
 templates_path = ['_templates']
 exclude_patterns = []
-
 
 
 # -- Options for HTML output -------------------------------------------------
