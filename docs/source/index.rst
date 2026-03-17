@@ -6,14 +6,25 @@
 EaZyGrad documentation
 ======================
 
-Add your content using ``reStructuredText`` syntax. See the
-`reStructuredText <https://www.sphinx-doc.org/en/master/usage/restructuredtext/index.html>`_
-documentation for details.
+.. toctree::
+   :maxdepth: 1
+   :caption: API Reference
 
+   eazygrad
 
 .. toctree::
-   :maxdepth: 2
-   :caption: Contents:
-	
-   eazygrad.nn
+   :maxdepth: 1
+   :caption: By domain
 
+   eazygrad.nn
+   eazygrad.functions
+   eazygrad.data
+   eazygrad.grad
+   eazygrad.utils
+
+.. toctree::
+   :maxdepth: 1
+   :caption: Full module index
+   :hidden:
+
+   modules

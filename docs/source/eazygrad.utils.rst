@@ -1,6 +1,11 @@
 eazygrad.utils package
 ======================
 
+.. seealso::
+   :doc:`eazygrad`
+   :doc:`eazygrad.data`
+
+
 Submodules
 ----------
 

@@ -1,6 +1,11 @@
 eazygrad.grad package
 =====================
 
+.. seealso::
+   :doc:`eazygrad`
+   :doc:`eazygrad.functions`
+
+
 Submodules
 ----------
 
