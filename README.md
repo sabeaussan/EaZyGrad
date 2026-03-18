@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="logo.png" alt="EaZyGrad Logo" width="250"/>
+  <img src="docs/source/_static/logo.png" alt="EaZyGrad Logo" width="250"/>
 </p>
 
 # EaZyGrad
