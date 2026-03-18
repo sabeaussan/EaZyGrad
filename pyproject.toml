@@ -20,4 +20,4 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-dev = ["torch", "pytest", "pytest-mock", "hypothesis", "line_profiler", "memory-profiler"]
+dev = ["torch", "pytest", "pytest-mock", "hypothesis", "line_profiler", "memory-profiler", "sphinx", "furo"]
