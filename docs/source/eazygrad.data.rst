@@ -1,23 +1,17 @@
 eazygrad.data
 =====================
 
-.. seealso::
-   :doc:`eazygrad`
-   :doc:`eazygrad.utils`
+.. automodule:: eazygrad.data
+   :no-index:
 
+.. currentmodule:: eazygrad.data
 
-eazygrad.data.dataloader
--------------------------------
+Datasets and Loading
+--------------------
 
-.. automodule:: eazygrad.data.dataloader
-   :members:
-   :show-inheritance:
-   :undoc-members:
+.. autosummary::
+   :toctree: generated/
+   :nosignatures:
 
-eazygrad.data.datasets
------------------------------
-
-.. automodule:: eazygrad.data.datasets
-   :members:
-   :show-inheritance:
-   :undoc-members:
+   MNISTDataset
+   dataloader.Dataloader

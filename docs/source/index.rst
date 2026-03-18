@@ -6,13 +6,10 @@
 EaZyGrad documentation
 ======================
 
+Minimal autograd library focused on readability and experimentation.
+
 .. toctree::
    :maxdepth: 2
    :caption: Contents:
 
    modules
-   eazygrad
-   eazygrad.nn
-   eazygrad.data
-   eazygrad.functions
-   eazygrad.grad

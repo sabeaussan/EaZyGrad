@@ -1,39 +1,56 @@
 eazygrad.functions
 ==========================
 
-.. seealso::
-   :doc:`eazygrad.nn`
-   :doc:`eazygrad.grad`
+.. automodule:: eazygrad.functions
+   :no-index:
 
+.. currentmodule:: eazygrad
 
-eazygrad.functions.activations
--------------------------------------
+Activations
+-----------
 
-.. automodule:: eazygrad.functions.activations
-   :members:
-   :show-inheritance:
-   :undoc-members:
+.. autosummary::
+   :toctree: generated/
+   :nosignatures:
 
-eazygrad.functions.loss
-------------------------------
+   relu
+   sigmoid
+   tanh
 
-.. automodule:: eazygrad.functions.loss
-   :members:
-   :show-inheritance:
-   :undoc-members:
+Math
+----
 
-eazygrad.functions.math
-------------------------------
+.. autosummary::
+   :toctree: generated/
+   :nosignatures:
 
-.. automodule:: eazygrad.functions.math
-   :members:
-   :show-inheritance:
-   :undoc-members:
+   min
+   exp
+   log
+   cos
+   sin
+   clip
 
-eazygrad.functions.specials
-----------------------------------
+Special Functions
+-----------------
 
-.. automodule:: eazygrad.functions.specials
-   :members:
-   :show-inheritance:
-   :undoc-members:
+.. autosummary::
+   :toctree: generated/
+   :nosignatures:
+
+   logsumexp
+   softmax
+   log_softmax
+
+Losses
+------
+
+.. autosummary::
+   :toctree: generated/
+   :nosignatures:
+
+   mse_loss
+   nll_loss
+   bce_with_logits_loss
+   bce_loss
+   cross_entropy_loss

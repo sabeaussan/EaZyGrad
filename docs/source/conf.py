@@ -1,7 +1,12 @@
+import os
+import sys
+
 # Configuration file for the Sphinx documentation builder.
 #
 # For the full list of built-in configuration values, see the documentation:
 # https://www.sphinx-doc.org/en/master/usage/configuration.html
+
+sys.path.insert(0, os.path.abspath('../..'))
 
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
@@ -24,7 +29,9 @@ extensions = [
 ]
 
 autosummary_generate = True
+autosummary_generate_overwrite = True
 autosummary_imported_members = True
+autodoc_mock_imports = ['graphviz', 'numba', 'tqdm']
 
 napoleon_google_docstring = False
 napoleon_use_param = False

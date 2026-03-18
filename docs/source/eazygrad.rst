@@ -1,29 +1,45 @@
 eazygrad
 ================
 
-Subpackages
------------
+Top-level API
+-------------
 
-.. toctree::
-   :maxdepth: 4
+.. automodule:: eazygrad
+   :no-index:
 
-   eazygrad.data
-   eazygrad.functions
-   eazygrad.grad
-   eazygrad.nn
+Tensor Creation
+---------------
 
-eazygrad.optimizer
--------------------------
+.. currentmodule:: eazygrad
 
-.. automodule:: eazygrad.optimizer
-   :members:
-   :show-inheritance:
-   :undoc-members:
+.. autosummary::
+   :toctree: generated/
+   :nosignatures:
 
-eazygrad.tensor\_factories
----------------------------------
+   tensor
+   from_numpy
+   randn
+   uniform
+   ones
+   zeros
 
-.. automodule:: eazygrad.tensor_factories
-   :members:
-   :show-inheritance:
-   :undoc-members:
+Optimization
+------------
+
+.. autosummary::
+   :toctree: generated/
+   :nosignatures:
+
+   SGD
+   Adam
+   AdamW
+
+Autograd Control
+----------------
+
+.. autosummary::
+   :toctree: generated/
+   :nosignatures:
+
+   no_grad
+   no_grad_ctx

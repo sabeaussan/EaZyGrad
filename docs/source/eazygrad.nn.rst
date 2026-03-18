@@ -1,26 +1,18 @@
 eazygrad.nn
 ===================
 
-.. seealso::
-   :doc:`eazygrad.functions`
-   :doc:`eazygrad.grad`
+.. automodule:: eazygrad.nn
+   :no-index:
 
+.. currentmodule:: eazygrad.nn
 
-Submodules
-----------
+Layers and Containers
+---------------------
 
-eazygrad.nn.linear
--------------------------
+.. autosummary::
+   :toctree: generated/
+   :nosignatures:
 
-.. automodule:: eazygrad.nn.linear
-   :members:
-   :show-inheritance:
-   :undoc-members:
-
-eazygrad.nn.module
--------------------------
-
-.. automodule:: eazygrad.nn.module
-   :members:
-   :show-inheritance:
-   :undoc-members:
+   Module
+   ModuleList
+   Linear

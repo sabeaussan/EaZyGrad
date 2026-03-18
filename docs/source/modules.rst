@@ -1,7 +1,11 @@
-eazygrad
-========
+API Reference
+=============
 
 .. toctree::
-   :maxdepth: 4
+   :maxdepth: 2
 
    eazygrad
+   eazygrad.functions
+   eazygrad.nn
+   eazygrad.data
+   eazygrad.grad

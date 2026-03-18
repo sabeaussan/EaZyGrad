@@ -1,14 +1,16 @@
 eazygrad.grad
 =====================
 
-.. seealso::
-   :doc:`eazygrad`
-   :doc:`eazygrad.functions`
+.. automodule:: eazygrad.grad
+   :no-index:
 
-eazygrad.grad.computation\_graph
----------------------------------------
+.. currentmodule:: eazygrad.grad
 
-.. automodule:: eazygrad.grad.computation_graph
-   :members:
-   :show-inheritance:
-   :undoc-members:
+Computation Graph
+-----------------
+
+.. autosummary::
+   :toctree: generated/
+   :nosignatures:
+
+   computation_graph.ComputationGraph
