@@ -31,7 +31,7 @@ extensions = [
 autosummary_generate = True
 autosummary_generate_overwrite = True
 autosummary_imported_members = True
-autodoc_mock_imports = ['graphviz', 'numba', 'tqdm']
+autodoc_mock_imports = ['graphviz', 'numba', 'tqdm', 'numpy']
 
 napoleon_google_docstring = False
 napoleon_use_param = False
