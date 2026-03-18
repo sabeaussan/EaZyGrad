@@ -1,4 +1,4 @@
-eazygrad.data package
+eazygrad.data
 =====================
 
 .. seealso::
@@ -6,10 +6,7 @@ eazygrad.data package
    :doc:`eazygrad.utils`
 
 
-Submodules
-----------
-
-eazygrad.data.dataloader module
+eazygrad.data.dataloader
 -------------------------------
 
 .. automodule:: eazygrad.data.dataloader
@@ -17,26 +14,10 @@ eazygrad.data.dataloader module
    :show-inheritance:
    :undoc-members:
 
-eazygrad.data.datasets module
+eazygrad.data.datasets
 -----------------------------
 
 .. automodule:: eazygrad.data.datasets
-   :members:
-   :show-inheritance:
-   :undoc-members:
-
-eazygrad.data.utils module
---------------------------
-
-.. automodule:: eazygrad.data.utils
-   :members:
-   :show-inheritance:
-   :undoc-members:
-
-Module contents
----------------
-
-.. automodule:: eazygrad.data
    :members:
    :show-inheritance:
    :undoc-members:

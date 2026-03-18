@@ -1,4 +1,4 @@
-eazygrad.functions package
+eazygrad.functions
 ==========================
 
 .. seealso::
@@ -6,10 +6,7 @@ eazygrad.functions package
    :doc:`eazygrad.grad`
 
 
-Submodules
-----------
-
-eazygrad.functions.activations module
+eazygrad.functions.activations
 -------------------------------------
 
 .. automodule:: eazygrad.functions.activations
@@ -17,7 +14,7 @@ eazygrad.functions.activations module
    :show-inheritance:
    :undoc-members:
 
-eazygrad.functions.loss module
+eazygrad.functions.loss
 ------------------------------
 
 .. automodule:: eazygrad.functions.loss
@@ -25,7 +22,7 @@ eazygrad.functions.loss module
    :show-inheritance:
    :undoc-members:
 
-eazygrad.functions.math module
+eazygrad.functions.math
 ------------------------------
 
 .. automodule:: eazygrad.functions.math
@@ -33,18 +30,10 @@ eazygrad.functions.math module
    :show-inheritance:
    :undoc-members:
 
-eazygrad.functions.specials module
+eazygrad.functions.specials
 ----------------------------------
 
 .. automodule:: eazygrad.functions.specials
-   :members:
-   :show-inheritance:
-   :undoc-members:
-
-Module contents
----------------
-
-.. automodule:: eazygrad.functions
    :members:
    :show-inheritance:
    :undoc-members:

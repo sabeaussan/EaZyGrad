@@ -1,4 +1,4 @@
-eazygrad.nn package
+eazygrad.nn
 ===================
 
 .. seealso::
@@ -9,7 +9,7 @@ eazygrad.nn package
 Submodules
 ----------
 
-eazygrad.nn.linear module
+eazygrad.nn.linear
 -------------------------
 
 .. automodule:: eazygrad.nn.linear
@@ -17,18 +17,10 @@ eazygrad.nn.linear module
    :show-inheritance:
    :undoc-members:
 
-eazygrad.nn.module module
+eazygrad.nn.module
 -------------------------
 
 .. automodule:: eazygrad.nn.module
-   :members:
-   :show-inheritance:
-   :undoc-members:
-
-Module contents
----------------
-
-.. automodule:: eazygrad.nn
    :members:
    :show-inheritance:
    :undoc-members:

@@ -1,4 +1,4 @@
-eazygrad package
+eazygrad
 ================
 
 Subpackages
@@ -11,12 +11,8 @@ Subpackages
    eazygrad.functions
    eazygrad.grad
    eazygrad.nn
-   eazygrad.utils
 
-Submodules
-----------
-
-eazygrad.optimizer module
+eazygrad.optimizer
 -------------------------
 
 .. automodule:: eazygrad.optimizer
@@ -24,18 +20,10 @@ eazygrad.optimizer module
    :show-inheritance:
    :undoc-members:
 
-eazygrad.tensor\_factories module
+eazygrad.tensor\_factories
 ---------------------------------
 
 .. automodule:: eazygrad.tensor_factories
-   :members:
-   :show-inheritance:
-   :undoc-members:
-
-Module contents
----------------
-
-.. automodule:: eazygrad
    :members:
    :show-inheritance:
    :undoc-members:

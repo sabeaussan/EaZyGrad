@@ -13,7 +13,6 @@ EaZyGrad documentation
    modules
    eazygrad
    eazygrad.nn
-   eazygrad.utils
    eazygrad.data
    eazygrad.functions
    eazygrad.grad
