@@ -27,3 +27,5 @@ htmlcov/
 
 MNIST/
 .python-version
+figures/
+*.png
