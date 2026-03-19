@@ -65,6 +65,10 @@ def logsumexp(input: _Tensor, dim: int, keepdims: bool = False) -> _Tensor:
 	-------
 	_Tensor
 		Reduced tensor after applying the log-sum-exp operation.
+
+	See Also
+	--------
+	`torch.logsumexp <https://pytorch.org/docs/stable/generated/torch.logsumexp.html>`_
 	"""
 	if not isinstance(input, _Tensor):
 		raise TypeError(f"Expected input to be an eazygrad tensor, got {type(input)}")
@@ -141,6 +145,10 @@ def softmax(input: _Tensor, dim: int) -> _Tensor:
 	-------
 	_Tensor
 		Tensor of normalized exponentials.
+
+	See Also
+	--------
+	`torch.softmax <https://pytorch.org/docs/stable/generated/torch.softmax.html>`_
 	"""
 	if not isinstance(input, _Tensor):
 		raise TypeError(f"Expected input to be an eazygrad tensor, got {type(input)}")
@@ -169,6 +177,10 @@ def log_softmax(input: _Tensor, dim: int) -> _Tensor:
 	-------
 	_Tensor
 		Tensor containing log-probabilities.
+
+	See Also
+	--------
+	`torch.log_softmax <https://pytorch.org/docs/stable/generated/torch.log_softmax.html>`_
 	"""
 	if not isinstance(input, _Tensor):
 		raise TypeError(f"Expected input to be an eazygrad tensor, got {type(input)}")

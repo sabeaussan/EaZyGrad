@@ -22,6 +22,10 @@ def mse_loss(predicted: _Tensor, target: _Tensor) -> _Tensor:
 	-------
 	_Tensor
 		Scalar loss tensor.
+
+	See Also
+	--------
+	`torch.nn.functional.mse_loss <https://pytorch.org/docs/stable/generated/torch.nn.functional.mse_loss.html>`_
 	"""
 	return ((predicted - target) ** 2).mean()
 
@@ -40,6 +44,10 @@ def nll_loss(predicted: _Tensor, target: _Tensor) -> _Tensor:
 	-------
 	_Tensor
 		Scalar loss tensor.
+
+	See Also
+	--------
+	`torch.nn.functional.nll_loss <https://pytorch.org/docs/stable/generated/torch.nn.functional.nll_loss.html>`_
 	"""
 	correct_probs = predicted[np.arange(predicted.shape[0]), target._array]
 	return -correct_probs.mean()
@@ -66,6 +74,10 @@ def bce_with_logits_loss(logits: _Tensor, target: _Tensor) -> _Tensor:
 	-----
 	This implementation uses a numerically stable formulation and internally
 	averages the per-element loss.
+
+	See Also
+	--------
+	`torch.nn.functional.binary_cross_entropy_with_logits <https://pytorch.org/docs/stable/generated/torch.nn.functional.binary_cross_entropy_with_logits.html>`_
 	"""
 
 	if not isinstance(logits, _Tensor):
@@ -104,6 +116,10 @@ def bce_loss(predicted: _Tensor, target: _Tensor) -> _Tensor:
 	-------
 	_Tensor
 		Scalar loss tensor.
+
+	See Also
+	--------
+	`torch.nn.functional.binary_cross_entropy <https://pytorch.org/docs/stable/generated/torch.nn.functional.binary_cross_entropy.html>`_
 	"""
 	return -(target * log(predicted) + (1 - target) * log(1 - predicted)).mean()
 
@@ -127,6 +143,10 @@ def cross_entropy_loss(predicted: _Tensor, target: _Tensor) -> _Tensor:
 	Notes
 	-----
 	The loss is computed with a numerically stable log-sum-exp formulation.
+
+	See Also
+	--------
+	`torch.nn.functional.cross_entropy <https://pytorch.org/docs/stable/generated/torch.nn.functional.cross_entropy.html>`_
 	"""
 	# Expect predicted to be Tensor with logits shape (N, C)
 	# target should be Tensor with class indices or target distribution

@@ -21,6 +21,10 @@ def min(input: _Tensor, other: _Tensor) -> _Tensor:
 	-------
 	_Tensor
 		Elementwise minimum of ``input`` and ``other``.
+
+	See Also
+	--------
+	`torch.minimum <https://pytorch.org/docs/stable/generated/torch.minimum.html>`_
 	"""
 	if not isinstance(input, _Tensor) or not isinstance(other, _Tensor):
 		raise TypeError(f"Expected inputs to be eazygrad tensors, but got {type(input)} and {type(other)}.")
@@ -50,6 +54,10 @@ def exp(input: _Tensor) -> _Tensor:
 	-------
 	_Tensor
 		Tensor containing ``exp(input)``.
+
+	See Also
+	--------
+	`torch.exp <https://pytorch.org/docs/stable/generated/torch.exp.html>`_
 	"""
 	if not isinstance(input, _Tensor):
 		raise TypeError(f"Expected input to be an eazygrad tensor, got {type(input)}")
@@ -75,6 +83,10 @@ def log(input: _Tensor) -> _Tensor:
 	-------
 	_Tensor
 		Tensor containing ``log(input)``.
+
+	See Also
+	--------
+	`torch.log <https://pytorch.org/docs/stable/generated/torch.log.html>`_
 	"""
 	if not isinstance(input, _Tensor):
 		raise TypeError(f"Expected input to be an eazygrad tensor, got {type(input)}")
@@ -99,6 +111,10 @@ def cos(input: _Tensor) -> _Tensor:
 	-------
 	_Tensor
 		Tensor containing ``cos(input)``.
+
+	See Also
+	--------
+	`torch.cos <https://pytorch.org/docs/stable/generated/torch.cos.html>`_
 	"""
 	if not isinstance(input, _Tensor):
 		raise TypeError(f"Expected input to be an eazygrad tensor, got {type(input)}")
@@ -122,6 +138,10 @@ def sin(input: _Tensor) -> _Tensor:
 	-------
 	_Tensor
 		Tensor containing ``sin(input)``.
+
+	See Also
+	--------
+	`torch.sin <https://pytorch.org/docs/stable/generated/torch.sin.html>`_
 	"""
 	if not isinstance(input, _Tensor):
 		raise TypeError(f"Expected input to be an eazygrad tensor, got {type(input)}")
@@ -149,6 +169,10 @@ def clip(input: _Tensor, low: float, high: float) -> _Tensor:
 	-------
 	_Tensor
 		Clipped tensor.
+
+	See Also
+	--------
+	`torch.clamp <https://pytorch.org/docs/stable/generated/torch.clamp.html>`_
 	"""
 	if not isinstance(input, _Tensor):
 		raise TypeError(f"Expected input to be an eazygrad tensor, got {type(input)}")

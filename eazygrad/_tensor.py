@@ -7,6 +7,24 @@ from .grad import operations, dag
 from .utils import check
 
 class _Tensor:
+    """
+    Dense tensor object used throughout EaZyGrad.
+
+    `_Tensor` plays the same role as `torch.Tensor` in PyTorch: it stores
+    array data, tracks whether gradients are required, and records graph edges
+    when differentiable operations are applied.
+
+    Notes
+    -----
+    This class is intentionally lightweight and educational. Most users should
+    construct tensors through the factory functions in :mod:`eazygrad`, such as
+    :func:`eazygrad.tensor` or :func:`eazygrad.from_numpy`, rather than calling
+    `_Tensor` directly.
+
+    See Also
+    --------
+    `PyTorch tensor docs <https://pytorch.org/docs/stable/tensors.html>`_
+    """
 
     def __init__(self, array: Any, requires_grad: bool, dtype: Any = None) -> None:
         # /!\ Warning ! array is not copied if this __init__ function is used instead of tensor factories
@@ -161,6 +179,10 @@ class _Tensor:
         -----
         This method follows NumPy's ``matmul`` broadcasting rules and requires
         both operands to be at least 1-dimensional.
+
+        See Also
+        --------
+        `torch.matmul <https://pytorch.org/docs/stable/generated/torch.matmul.html>`_
         """
         if isinstance(other, _Tensor):
             if other._array.ndim==0 or self._array.ndim==0:
@@ -196,6 +218,15 @@ class _Tensor:
         -------
         _Tensor
             Reshaped tensor view.
+
+        Notes
+        -----
+        The returned tensor shares storage with the input whenever NumPy can
+        provide a view.
+
+        See Also
+        --------
+        `torch.reshape <https://pytorch.org/docs/stable/generated/torch.reshape.html>`_
         """
         # Return a view of the input array with given shape
         # Share the same data buffer as the original Tensor
@@ -219,6 +250,10 @@ class _Tensor:
         -------
         _Tensor
             Tensor containing the reduced mean.
+
+        See Also
+        --------
+        `torch.mean <https://pytorch.org/docs/stable/generated/torch.mean.html>`_
         """
         # dim is int or tuple of ints
         if isinstance(dim, int):
@@ -258,6 +293,10 @@ class _Tensor:
         -------
         _Tensor
             Tensor containing the reduced sum.
+
+        See Also
+        --------
+        `torch.sum <https://pytorch.org/docs/stable/generated/torch.sum.html>`_
         """
         if dim is None:
             # avoid backprop error is keepdims is True and dim = None
@@ -295,6 +334,10 @@ class _Tensor:
         -------
         _Tensor
             Tensor with expanded dimensionality.
+
+        See Also
+        --------
+        `torch.unsqueeze <https://pytorch.org/docs/stable/generated/torch.unsqueeze.html>`_
         """
         if len(dim) == 0:
             dim = 0
@@ -317,6 +360,10 @@ class _Tensor:
         -------
         _Tensor
             Tensor with squeezed dimensionality.
+
+        See Also
+        --------
+        `torch.squeeze <https://pytorch.org/docs/stable/generated/torch.squeeze.html>`_
         """
         if len(dim) == 0:
             dim = None
@@ -340,6 +387,10 @@ class _Tensor:
         -------
         _Tensor
             Tensor with the two dimensions exchanged.
+
+        See Also
+        --------
+        `torch.swapdims <https://pytorch.org/docs/stable/generated/torch.swapdims.html>`_
         """
         result = _Tensor(np.swapaxes(self._array, dim1, dim2), requires_grad=self.requires_grad)
         if self.requires_grad:
@@ -380,6 +431,11 @@ class _Tensor:
         -------
         numpy.ndarray
             Copy of the underlying tensor data.
+
+        Notes
+        -----
+        Unlike `torch.Tensor.numpy()`, EaZyGrad always returns a copy and does
+        not expose shared storage back to NumPy.
         """
         # Always returns a copy unlike pytorch
         if not force:
@@ -476,6 +532,10 @@ class _Tensor:
         -------
         _Tensor
             Tensor cast to the requested dtype.
+
+        See Also
+        --------
+        `torch.Tensor.to <https://pytorch.org/docs/stable/generated/torch.Tensor.to.html>`_
         """
         # no-op
         if dtype == self.dtype:
@@ -532,6 +592,10 @@ class _Tensor:
         -----
         If ``vector`` is omitted, the tensor must be scalar and a gradient of
         1 is used.
+
+        See Also
+        --------
+        `torch.Tensor.backward <https://pytorch.org/docs/stable/generated/torch.Tensor.backward.html>`_
         """
         # vector is the gradient the gradient of the differentiated function w.r.t. self
         # Expect a numpy array of same shape and dtype

@@ -10,7 +10,7 @@ from ..utils import check
 import sys
 
 class Node:
-	# Node of the computation graph
+	"""Single node in the dynamic computation graph."""
 	def __init__(self, 
 				 parents_id: list[int | None], 
 				 operation: Any, 
@@ -23,6 +23,26 @@ class Node:
 		self.is_leaf = is_leaf
 
 class ComputationGraph:
+	"""
+	Global dynamic computation graph used by EaZyGrad.
+
+	The graph stores every differentiable operation as a node together with:
+
+	- the parent node ids,
+	- the operation object that knows how to backpropagate locally,
+	- the result tensor produced at that node.
+
+	Notes
+	-----
+	EaZyGrad currently uses a single global graph instance (`dag`) rather than
+	per-tensor graph ownership. This keeps the implementation small and easy to
+	trace, but it also means graph lifetime management is more manual than in
+	PyTorch.
+
+	See Also
+	--------
+	`PyTorch autograd overview <https://pytorch.org/docs/stable/autograd.html>`_
+	"""
 
 	def __init__(self) -> None:
 		# the computation graph
@@ -97,6 +117,10 @@ class ComputationGraph:
 		nodes using the local backward rule of each recorded operation.
 		Broadcasted gradients are reduced to match parent tensor shapes before
 		being accumulated.
+
+		See Also
+		--------
+		`torch.Tensor.backward <https://pytorch.org/docs/stable/generated/torch.Tensor.backward.html>`_
 		"""
 		pending_nodes = []
 		heapq.heappush(pending_nodes, -root_node_id)

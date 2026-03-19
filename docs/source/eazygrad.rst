@@ -7,6 +7,14 @@ Top-level API
 .. automodule:: eazygrad
    :no-index:
 
+Tensor Object
+-------------
+
+.. toctree::
+   :maxdepth: 1
+
+   eazygrad.tensor_object
+
 Tensor Creation
 ---------------
 

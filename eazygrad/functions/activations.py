@@ -19,6 +19,10 @@ def relu(input: _Tensor) -> _Tensor:
 	-------
 	_Tensor
 		Tensor with ``max(input, 0)`` applied elementwise.
+
+	See Also
+	--------
+	`torch.nn.functional.relu <https://pytorch.org/docs/stable/generated/torch.nn.functional.relu.html>`_
 	"""
 	if not isinstance(input, _Tensor):
 		raise TypeError(f"Expected input to be an eazygrad tensor, got {type(input)}")
@@ -54,6 +58,10 @@ def sigmoid(input: _Tensor) -> _Tensor:
 	-----
 	The implementation uses a numerically stable formulation based on the
 	sign of the input.
+
+	See Also
+	--------
+	`torch.sigmoid <https://pytorch.org/docs/stable/generated/torch.sigmoid.html>`_
 	"""
 	if not isinstance(input, _Tensor):
 		raise TypeError(f"Expected input to be an eazygrad tensor, got {type(input)}")
@@ -87,6 +95,10 @@ def tanh(input: _Tensor) -> _Tensor:
 	-------
 	_Tensor
 		Tensor containing ``tanh(input)``.
+
+	See Also
+	--------
+	`torch.tanh <https://pytorch.org/docs/stable/generated/torch.tanh.html>`_
 	"""
 	if not isinstance(input, _Tensor):
 		raise TypeError(f"Expected input to be an eazygrad tensor, got {type(input)}")

@@ -66,6 +66,10 @@ class SGD(Optimizer):
 	-----
 	If ``momentum`` is zero, the optimizer reduces to plain stochastic gradient
 	descent. Otherwise, it maintains one momentum buffer per parameter.
+
+	See Also
+	--------
+	`torch.optim.SGD <https://pytorch.org/docs/stable/generated/torch.optim.SGD.html>`_
 	"""
 	def __init__(
 		self,
@@ -111,6 +115,10 @@ class Adam(Optimizer):
 	-----
 	The optimizer maintains per-parameter first and second moment estimates and
 	uses bias correction during the update step.
+
+	See Also
+	--------
+	`torch.optim.Adam <https://pytorch.org/docs/stable/generated/torch.optim.Adam.html>`_
 	"""
 
 	def __init__(
@@ -155,6 +163,10 @@ class AdamW(Adam):
 		Small value added for numerical stability.
 	weight_decay : float, default=0.01
 		Decoupled weight decay coefficient applied before the Adam update.
+
+	See Also
+	--------
+	`torch.optim.AdamW <https://pytorch.org/docs/stable/generated/torch.optim.AdamW.html>`_
 	"""
 
 	def __init__(

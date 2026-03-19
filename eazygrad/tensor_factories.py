@@ -35,6 +35,10 @@ def from_numpy(array: np.ndarray, requires_grad: bool = False) -> _Tensor:
     Notes
     -----
     Mutations are shared between the NumPy array and the returned tensor.
+
+    See Also
+    --------
+    `torch.from_numpy <https://pytorch.org/docs/stable/generated/torch.from_numpy.html>`_
     """
     # fast path to create tensor from numpy array without copy
     # /!\ Warning ! Shared storage, changes to the original array will be reflected in the tensor and vice versa
@@ -72,6 +76,10 @@ def tensor(array: Any, requires_grad: bool = False, dtype: Any = None) -> _Tenso
     Notes
     -----
     Unlike :func:`from_numpy`, this constructor copies NumPy inputs.
+
+    See Also
+    --------
+    `torch.tensor <https://pytorch.org/docs/stable/generated/torch.tensor.html>`_
     """
     # Instantiating tensor from numpy array copies the underlying buffer. For no-copy use from_numpy.
     new_tensor = _Tensor(array=array, requires_grad=requires_grad, dtype=dtype)
@@ -97,6 +105,10 @@ def randn(*shape: int, requires_grad: bool = False, dtype: Any = np.float32) -> 
     -------
     _Tensor
         Randomly initialized tensor.
+
+    See Also
+    --------
+    `torch.randn <https://pytorch.org/docs/stable/generated/torch.randn.html>`_
     """
     if not isinstance(shape, tuple):
         raise TypeError(f"Expected a shape of type tuple, got {type(shape)} instead")
@@ -132,6 +144,10 @@ def uniform(
     -------
     _Tensor
         Randomly initialized tensor.
+
+    See Also
+    --------
+    `torch.rand <https://pytorch.org/docs/stable/generated/torch.rand.html>`_
     """
     if not isinstance(shape, tuple):
         raise TypeError(f"Expected a shape of type tuple, got {type(shape)} instead")
@@ -159,6 +175,10 @@ def ones(*shape: int, requires_grad: bool = False, dtype: Any = np.float32) -> _
     -------
     _Tensor
         Tensor filled with ones.
+
+    See Also
+    --------
+    `torch.ones <https://pytorch.org/docs/stable/generated/torch.ones.html>`_
     """
     if not isinstance(shape, tuple):
         raise TypeError(f"Expected a shape of type tuple, got {type(shape)} instead")
@@ -184,10 +204,13 @@ def zeros(*shape: int, requires_grad: bool = False, dtype: Any = np.float32) -> 
     -------
     _Tensor
         Tensor filled with zeros.
+
+    See Also
+    --------
+    `torch.zeros <https://pytorch.org/docs/stable/generated/torch.zeros.html>`_
     """
     if not isinstance(shape, tuple):
         raise TypeError(f"Expected a shape of type tuple, got {type(shape)} instead")
     if 0 in shape:
         raise ValueError("At least one of the dimension is empty")
     return tensor(np.zeros(shape).astype(dtype), requires_grad=requires_grad)
-
