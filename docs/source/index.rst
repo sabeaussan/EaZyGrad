@@ -9,7 +9,9 @@ EaZyGrad documentation
 Minimal autograd library focused on readability and experimentation.
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 3
    :caption: Contents:
+   :includehidden:
 
+   learn
    modules

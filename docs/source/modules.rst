@@ -3,6 +3,8 @@ API Reference
 
 .. toctree::
    :maxdepth: 2
+   :hidden:
+   :includehidden:
 
    eazygrad
    eazygrad.functions

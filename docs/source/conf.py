@@ -20,14 +20,18 @@ release = '0.0.1'
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
 
 extensions = [
+	"myst_parser",
     'sphinx.ext.autodoc',
     'sphinx.ext.autosummary',
     'sphinx.ext.napoleon',
     'sphinx.ext.duration',
     'sphinx.ext.intersphinx',
     'sphinx.ext.viewcode',
+    'sphinx.ext.mathjax',
+	
+    
 ]
-
+myst_enable_extensions = ["amsmath","dollarmath"]
 autosummary_generate = True
 autosummary_generate_overwrite = True
 autosummary_imported_members = True
@@ -52,3 +56,8 @@ exclude_patterns = []
 html_theme = 'furo'
 html_static_path = ['_static']
 html_logo = "_static/_logo.png"
+
+source_suffix = {
+    ".rst": "restructuredtext",
+    ".md": "markdown",
+}

@@ -12,7 +12,7 @@ EaZyGrad is a small educational python-only deep learning library built to make 
 - neural network modules,
 - optimizers.
 
-The project first started as me trying to figure out how Hessian-vector product are computed in practice. We aren't there yet but it still implement Jacobian-vector product to compute backpropagation (reverse-mode autodiff). The current API is as robust and reliable as an overfitted model on production so expect bugs and weird behaviors. Make sure to checkout the examples to see the versatility of the autograd engine. See the [project page](https://eazygrad.readthedocs.io/en/latest/index.html) for the API and other hopefully interesting stuff.
+The project first started as me trying to figure out how Hessian-vector product are computed in practice. We aren't there yet but it still implement Jacobian-vector product to compute backpropagation (reverse-mode autodiff). The current API is as robust and reliable as an overfitted model on production so expect bugs and weird behaviors. Make sure to checkout the examples to see the versatility of the autograd engine. See the [project page](https://eazygrad.readthedocs.io/en/latest/index.html) for the API and other, hopefully, interesting stuff.
 
 ## Installation
 

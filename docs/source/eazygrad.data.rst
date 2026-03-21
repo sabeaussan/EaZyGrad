@@ -15,3 +15,9 @@ Datasets and Loading
 
    MNISTDataset
    dataloader.Dataloader
+
+.. toctree::
+   :hidden:
+
+   generated/eazygrad.data.MNISTDataset
+   generated/eazygrad.data.dataloader.Dataloader

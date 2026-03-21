@@ -16,3 +16,10 @@ Layers and Containers
    Module
    ModuleList
    Linear
+
+.. toctree::
+   :hidden:
+
+   generated/eazygrad.nn.Module
+   generated/eazygrad.nn.ModuleList
+   generated/eazygrad.nn.Linear

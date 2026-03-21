@@ -14,3 +14,8 @@ Computation Graph
    :nosignatures:
 
    computation_graph.ComputationGraph
+
+.. toctree::
+   :hidden:
+
+   generated/eazygrad.grad.computation_graph.ComputationGraph

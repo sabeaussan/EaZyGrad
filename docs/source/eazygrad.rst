@@ -51,3 +51,19 @@ Autograd Control
 
    no_grad
    no_grad_ctx
+
+.. toctree::
+   :hidden:
+
+   eazygrad.tensor_object
+   generated/eazygrad.tensor
+   generated/eazygrad.from_numpy
+   generated/eazygrad.randn
+   generated/eazygrad.uniform
+   generated/eazygrad.ones
+   generated/eazygrad.zeros
+   generated/eazygrad.SGD
+   generated/eazygrad.Adam
+   generated/eazygrad.AdamW
+   generated/eazygrad.no_grad
+   generated/eazygrad.no_grad_ctx

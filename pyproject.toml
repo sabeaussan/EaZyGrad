@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "eazygrad"
-version="0.0.1"
+version="0.0.2"
 authors = [
     {name = "Samuel Beaussant", email = "sambeaussant@gmail.com"},
 ]
@@ -18,6 +18,10 @@ dependencies = [
     "matplotlib",
     "tqdm"
 ]
-
+readme = "README.md"
 [project.optional-dependencies]
 dev = ["torch", "pytest", "pytest-mock", "hypothesis", "line_profiler", "memory-profiler", "sphinx", "furo"]
+
+[project.urls]
+Homepage = "https://github.com/sabeaussan/EaZyGrad"
+Doc = "https://eazygrad.readthedocs.io/en/latest/index.html"
