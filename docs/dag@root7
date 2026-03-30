@@ -1,0 +1,25 @@
+// Computation graph
+digraph {
+	7 [label="id: 7
+Operation: Mean
+" fillcolor=lightskyblue fontsize=20 shape=circle style=filled]
+	6 -> 7
+	6 [label="id: 6
+Operation: Add
+" fillcolor=lightskyblue fontsize=20 shape=circle style=filled]
+	5 -> 6
+	0 -> 6
+	5 [label="id: 5
+Operation: Mul
+" fillcolor=lightskyblue fontsize=20 shape=circle style=filled]
+	0 -> 5
+	1 -> 5
+	1 [label="id: 1
+Operation: None
+" fillcolor=lightskyblue fontsize=20 shape=rectangle style=filled]
+	None -> 1
+	0 [label="id: 0
+Operation: None
+" fillcolor=lightskyblue fontsize=20 shape=rectangle style=filled]
+	None -> 0
+}
