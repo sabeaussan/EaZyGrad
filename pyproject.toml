@@ -20,7 +20,7 @@ dependencies = [
 ]
 readme = "README.md"
 [project.optional-dependencies]
-dev = ["torch", "pytest", "pytest-mock", "hypothesis", "line_profiler", "memory-profiler", "sphinx", "furo"]
+dev = ["torch", "pytest", "pytest-mock", "hypothesis", "line_profiler", "memory-profiler", "sphinx", "furo", "myst_parser"]
 
 [project.urls]
 Homepage = "https://github.com/sabeaussan/EaZyGrad"
