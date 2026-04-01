@@ -59,7 +59,7 @@ print(a.grad)
 
 One might expect `a.grad` to contain the gradient of the tensor `a`. However, `a` is not a leaf tensor: it is the result of a computation, namely `reshape`, which makes it an intermediate tensor. By default, PyTorch frees intermediate gradients after the backward pass. Assuming that `a.grad` exists would therefore lead to a potentially sneaky bug. EaZyGrad also clears intermediate gradients in the computation graph after the backward pass to save memory. You can see that directly in the tensor operators. Side note: PyTorch exposes the `retain_grad()` method to prevent intermediate gradient clearing when needed.
 
-Let us now walk through the code of our earlier example, starting with the base `_Tensor` class, which is essentially a wrapper around a NumPy array. NumPy takes care of the numerical computation, such as addition and multiplication, while EaZyGrad tracks the operations and builds the corresponding computation graph. Here is the `_Tensor` class in a nutshell:
+Let us now walk through the [code](https://github.com/sabeaussan/EaZyGrad/blob/main/eazygrad/_tensor.py) of our earlier example, starting with the base `_Tensor` class, which is essentially a wrapper around a NumPy array. NumPy takes care of the numerical computation, such as addition and multiplication, while EaZyGrad tracks the operations and builds the corresponding computation graph. Here is the `_Tensor` class in a nutshell:
 
 ```python
 class _Tensor:
@@ -107,7 +107,7 @@ def __add__(self, other: _Tensor | float | int) -> _Tensor:
     return result
 ```
 
-The graph itself stores that information in a compact node structure:
+The [graph](https://github.com/sabeaussan/EaZyGrad/blob/main/eazygrad/grad/computation_graph.py) itself stores that information in a compact node structure:
 
 ```python
 class Node:
@@ -577,7 +577,7 @@ where the operations are understood element-wise.
 
 ---
 
-In practice, EaZyGrad implements a VJP for each primitive operations (or computation nodes) : add, mul, matmul, exp, log etc. 
+In practice, EaZyGrad [implements](https://github.com/sabeaussan/EaZyGrad/blob/main/eazygrad/grad/operations.py) a VJP for each primitive operations (or computation nodes) : add, mul, matmul, exp, log etc. 
 
 ```python
 class Operation:
@@ -657,6 +657,9 @@ And in even simpler terms:
 > **Forward pass: compute values.  
 > Backward pass: replay the graph in reverse and distribute contributions using the chain rule.**
 
+If this clicked for you, try extending [EaZyGrad](https://github.com/sabeaussan/EaZyGrad).
+
+Add new operations, derive their VJPs, or fuse multiple operations into a single node. Each new rule you implement will deepen your intuition for how autodiff systems really work.
 
 ## Side note : Eager mode
 
