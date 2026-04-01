@@ -164,7 +164,7 @@ This renders the graph rooted at `loss`. For our example, the graph contains lea
 (sec-backward)=
 ## Playing the tape backward
 
-Right now, we know how the computation graph is created during the forward pass. Let us now walk this process backward. The recording tape analogy was actually not an analogy, but a keyword. PyTorch’s autograd engine implements what is called **tape-based reverse mode automatic differentiation**. Operations recorded on the tape during the forward pass can be replayed in reverse order when computing gradients, starting from the root node and traversing the graph backward in topological order, that is, each node is visited only after all its children have been visited. Calling `.backward()` on the root tensor fires up this process:
+Right now, we know how the computation graph is created during the forward pass. Let us now walk this process backward. The recording tape analogy was actually not an analogy, but a keyword. PyTorch’s autograd engine implements what is called **tape-based reverse mode automatic differentiation**. Operations recorded on the tape during the forward pass are replayed in reverse when computing gradients. The process starts from the root node and traverses the graph backward in topological order, meaning each node is visited only after all its children. Calling `.backward()` on the root tensor fires up this process:
 
 ```python
 def backward(self, vector: np.ndarray | None = None, retain_graph: bool = False) -> None:
@@ -209,176 +209,74 @@ Conceptually, each step does three things:
 
 This is why the operation object is stored during the forward pass. It has stored the context of computation, and therefore knows how to transform an incoming gradient at the output into outgoing gradients for each input. As we will see in section {ref}`sec-vjp`, each operation implements its own local backward rule.
 
-
+(sec-vjp)=
 ## Computing gradients along the way
 
 Let us pause for a minute to summarize what we discussed so far. During the forward pass, each operation performed on tensors is recorded into a computation graph, or a tape. Each node memorizes the context of its creation, namely the input tensors, the operation, and the result, so that the tape can later be played backward. During the backward pass, we start from the root node, usually a scalar loss, and traverse the graph in reverse, applying each operation’s local transformation rule to propagate gradients back to the leaf tensors, where they can then be used by an optimization procedure such as stochastic gradient descent.
 
-The only missing puzzle piece is this: how do we transform an incoming upstream gradient from a child node into outgoing gradients for the parent nodes, based on the operation recorded at the current node? This is the mathematically heavy part, so strap in.
-
-Let us go back to our running example:
-
-$$
-z = x \odot y,
-\qquad
-w = z + x,
-\qquad
-L = \mathrm{mean}(w)
-$$
-
-where $\odot$ denotes element-wise multiplication. Written component-wise, this becomes:
-
-$$
-z_i = x_i y_i,
-\qquad
-w_i = z_i + x_i = x_i y_i + x_i
-$$
-
-and
-
-$$
-L = \frac{1}{n} \sum_{i=1}^{n} w_i
-$$
-
-The graph makes the dependency structure explicit:
-- the mean node sends a gradient to \(w\),
-- the addition node sends gradients to both \(z\) and \(x\),
-- the multiplication node sends gradients to \(x\) and \(y\).
-
-So for $x_i$, the gradient comes from **two paths**:
-1. the direct path $x \to w \to L$,
-2. the multiplication path $x \to z \to w \to L$.
-
-Starting from the loss, we first have:
-
-$$
-\frac{\partial L}{\partial w_i} = \frac{1}{n}
-$$
-
-Then the addition node gives:
-
-$$
-\frac{\partial L}{\partial z_i} = \frac{\partial L}{\partial w_i} = \frac{1}{n}
-\qquad\text{and}\qquad
-\left.\frac{\partial L}{\partial x_i}\right|_{\text{through add}} = \frac{\partial L}{\partial w_i} = \frac{1}{n}
-$$
-
-Next, the multiplication node gives:
-
-$$
-\left.\frac{\partial L}{\partial x_i}\right|_{\text{through mul}}
-=
-\frac{\partial L}{\partial z_i}
-\frac{\partial z_i}{\partial x_i}
-=
-\frac{1}{n} y_i
-$$
-
-and
-
-$$
-\frac{\partial L}{\partial y_i}
-=
-\frac{\partial L}{\partial z_i}
-\frac{\partial z_i}{\partial y_i}
-=
-\frac{1}{n} x_i
-$$
-
-Since $x_i$ receives contributions from both paths, they must be added together:
-
-$$
-\frac{\partial L}{\partial x_i}
-=
-\left.\frac{\partial L}{\partial x_i}\right|_{\text{through add}}
-+
-\left.\frac{\partial L}{\partial x_i}\right|_{\text{through mul}}
-=
-\frac{1}{n} + \frac{1}{n} y_i
-=
-\frac{1}{n}(y_i + 1)
-$$
-
-So the final gradients are:
-
-$$
-\frac{\partial L}{\partial x_i} = \frac{1}{n}(y_i + 1)
-\qquad\text{and}\qquad
-\frac{\partial L}{\partial y_i} = \frac{1}{n}x_i
-$$
-
-For our concrete values
-
-$$
-x = [1, 2, 3], \qquad y = [0.5, -1, 4]
-$$
-
-we obtain:
-
-$$
-\nabla_x L = \frac{1}{3}[1.5, 0, 5] = \left[0.5, 0, \frac{5}{3}\right]
-$$
-
-and
-
-$$
-\nabla_y L = \frac{1}{3}[1, 2, 3] = \left[\frac{1}{3}, \frac{2}{3}, 1\right]
-$$
-
-That is the math you can derive with a pen and paper. Now here comes the million dollar implementation question : how do we compute these gradients efficiently for large tensor programs? Well, this is where Vector-Jacobian products enter the chat.
-
-(sec-vjp)=
-## Vector-Jacobian Products
+The only missing puzzle piece is this: how do we transform an incoming upstream gradient from a child node into outgoing gradients for the parent nodes, based on the operation recorded at the current node? This is the mathematically heavy part, so strap in. If you have a life-threatening allergy to math, you can skip to {ref}`sec-tldr`.
 
 ![Illustration of the backward pass for a node](_static/backward.gif)
 
 Now is the time to talk about the core feature of tape-based reverse mode auto-diff engines: **vector-Jacobian products**.
 
-A naive implementation of the chain rule would construct the full Jacobian matrix for every operation and multiply it by the incoming gradient. However, this is almost always wasteful.
-
-If an operation maps \(\mathbb{R}^m \to \mathbb{R}^n\), its Jacobian has shape \(n \times m\). In deep learning, these matrices are often enormous, and we rarely need them explicitly. For element-wise operations, Jacobians are diagonal and mostly filled with zeros.
-
-In practice, we are not interested in the full Jacobian. We only need its action on an incoming vector. This leads to the concept of **vector-Jacobian products (VJPs)**.
-
-If an operation is
+But before diving in, let’s briefly recall what a Jacobian is. If we have a vector-valued function
 
 $$
-f : \mathbb{R}^m \to \mathbb{R}^n
+y = f(x), \quad f : \mathbb{R}^m \to \mathbb{R}^n,
 $$
 
-with Jacobian
+its Jacobian is the matrix of all partial derivatives:
 
 $$
-J_f \in \mathbb{R}^{n \times m},
+J_f =
+\begin{bmatrix}
+\frac{\partial y_1}{\partial x_1} & \cdots & \frac{\partial y_1}{\partial x_m} \\
+\vdots & \ddots & \vdots \\
+\frac{\partial y_n}{\partial x_1} & \cdots & \frac{\partial y_n}{\partial x_m}
+\end{bmatrix}
+\in \mathbb{R}^{n \times m}.
 $$
 
-and an upstream gradient
+In practice, differentiation is driven by a **scalar objective**, usually the loss:
 
 $$
-v = \frac{\partial L}{\partial f},
+L = g(y).
 $$
 
-then what we compute is:
+Where $g$ could be any scalar function, such as a loss function. The gradient that flows backward through the graph from the root is therefore:
 
 $$
-v J_f
+v = \frac{\partial L}{\partial x}
 $$
 
-For a composition \(L(f(x))\), the chain rule gives:
+This vector $v \in \mathbb{R}^n$ is often called the **upstream gradient**.
+
+To propagate gradients to $x$, we apply the **chain rule**:
 
 $$
 \frac{\partial L}{\partial x}
 =
-\frac{\partial L}{\partial f}
+\frac{\partial L}{\partial y}
 \cdot
-\frac{\partial f}{\partial x}
+\frac{\partial y}{\partial x}.
 $$
 
 Here:
-- \(\frac{\partial L}{\partial f} = v\) is the upstream gradient,
-- \(\frac{\partial f}{\partial x} = J_f\) is the Jacobian.
+- $\frac{\partial L}{\partial y} = v$ is the upstream gradient,
+- $\frac{\partial y}{\partial x} = J_f$ is the Jacobian.
 
-So the VJP \(v J_f\) is exactly how the chain rule is applied locally. But once again the product $v J_f$ is **not computed explicitely**. Since $J_f$ will always have the same structure, no matter the inputs, for a specific operation, we can derive and hardcode by hand a closed-form equation evaluated at runtime, and avoid to compute the expensive Jacobian $J_f$. Backpropagation is simply the repeated application of these operation's specific formulas while traversing the computation graph backward. Lets derive one of such VJP to let this concept sink in.
+So we compute:
+
+$$
+\frac{\partial L}{\partial x} = v J_f
+$$
+
+This is exactly a **vector-Jacobian product (VJP)**. The VJP $v J_f$ is exactly how the chain rule is applied locally.
+
+A naive implementation of the chain rule would construct the full Jacobian matrix for every operation and multiply it by the incoming gradient. However, this is almost always wasteful.
+
+If an operation maps $\mathbb{R}^m \to \mathbb{R}^n$, its Jacobian has shape $n \times m$. In deep learning, these matrices are often enormous, and we rarely need them explicitly. For element-wise operations, Jacobians are diagonal and mostly filled with zeros. In practice, we are not interested in the full Jacobian. We only need its action on an incoming vector. Since $J_f$ will always have the same structure for a given operation, no matter the inputs, we can derive and hardcode by hand a closed-form equation evaluated at runtime, and avoid to compute the expensive Jacobian $J_f$. Backpropagation is simply the repeated application of these operation's specific backward rule, at each node, while traversing the computation graph backward. Lets derive one of such VJP to let this concept sink in.
 
 ---
 
@@ -416,7 +314,7 @@ y_i & \text{if } i = j \\
 \end{cases}
 $$
 
-Thus, the Jacobian of \(z\) with respect to \(x\) is diagonal:
+Thus, the Jacobian of $z$ with respect to $x$ is diagonal:
 
 $$
 J_{z \to x} =
@@ -489,6 +387,196 @@ $$
 = (v \odot y,\; v \odot x)
 $$
 
+## VJPs in action
+
+Let's recall our running example and apply what we learned to derive the gradient for the two leaf nodes `x`and `y`:
+
+$$
+z = x \odot y,
+\qquad
+w = z + x,
+\qquad
+L = \mathrm{mean}(w)
+$$
+
+where $\odot$ denotes element-wise multiplication. The graph makes the dependency structure explicit:
+- the mean node sends a gradient to $w$,
+- the addition node sends gradients to both $z$ and $x$,
+- the multiplication node sends gradients to $x$ and $y$.
+
+Now let’s run backpropagation step by step and see the VJPs in action.
+
+---
+
+### Step 1 : Start from the scalar loss
+
+Since $L$ is the mean of the components of $w$,
+
+$$
+L = \frac{1}{n}\sum_{i=1}^n w_i
+$$
+
+the gradient of the loss with respect to $w$ is:
+
+$$
+\frac{\partial L}{\partial w}
+=
+\left(
+\frac{1}{n}, \dots, \frac{1}{n}
+\right)
+$$
+
+This is the first upstream gradient injected into the graph by calling `.backward()` on the scalar loss.
+
+Let us denote it by
+
+$$
+v_w = \frac{\partial L}{\partial w}.
+$$
+
+---
+
+### Step 2 : Backprop through the addition node
+
+We now differentiate
+
+$$
+w = z + x.
+$$
+
+For addition, the local backward rule is simple: the upstream gradient is copied unchanged to both parents. In VJP form:
+
+$$
+\operatorname{VJP}_{\text{add}}(v_w, z, x) = (v_w,\; v_w)
+$$
+
+So the addition node sends:
+
+$$
+\frac{\partial L}{\partial z} = v_w
+\qquad\text{and}\qquad
+\left(\frac{\partial L}{\partial x}\right)_{\text{from add}} = v_w.
+$$
+
+At this point, $x$ has already received one gradient contribution, but it is not the final one yet, because $x$ also influences the loss through the multiplication node.
+
+---
+
+### Step 3 : Backprop through the multiplication node
+
+Next we differentiate
+
+$$
+z = x \odot y.
+$$
+
+From the VJP we derived earlier:
+
+$$
+\operatorname{VJP}_{\text{mul}}(v_z, x, y) = (v_z \odot y,\; v_z \odot x)
+$$
+
+with
+
+$$
+v_z = \frac{\partial L}{\partial z} = v_w.
+$$
+
+Therefore, the multiplication node sends:
+
+$$
+\left(\frac{\partial L}{\partial x}\right)_{\text{from mul}} = v_w \odot y
+$$
+
+and
+
+$$
+\frac{\partial L}{\partial y} = v_w \odot x.
+$$
+
+---
+
+### Step 4 : Accumulate gradients at shared nodes
+
+The tensor $x$ has two outgoing paths to the loss:
+1. directly through the addition $w = z + x$,
+2. indirectly through the multiplication $z = x \odot y$.
+
+Because both paths contribute to the final loss, their gradient contributions must be added together:
+
+$$
+\frac{\partial L}{\partial x}
+=
+\left(\frac{\partial L}{\partial x}\right)_{\text{from add}}
++
+\left(\frac{\partial L}{\partial x}\right)_{\text{from mul}}
+$$
+
+Substituting the expressions above gives:
+
+$$
+\frac{\partial L}{\partial x}
+=
+v_w + v_w \odot y
+$$
+
+and
+
+$$
+\frac{\partial L}{\partial y}
+=
+v_w \odot x.
+$$
+
+Since
+
+$$
+v_w =
+\left(
+\frac{1}{n}, \dots, \frac{1}{n}
+\right),
+$$
+
+we can write the final gradients explicitly as:
+
+$$
+\frac{\partial L}{\partial x}
+=
+\left(
+\frac{1}{n}, \dots, \frac{1}{n}
+\right)
++
+\left(
+\frac{1}{n}, \dots, \frac{1}{n}
+\right)\odot y
+$$
+
+and
+
+$$
+\frac{\partial L}{\partial y}
+=
+\left(
+\frac{1}{n}, \dots, \frac{1}{n}
+\right)\odot x.
+$$
+
+Or, more compactly:
+
+$$
+\boxed{
+\frac{\partial L}{\partial x} = \frac{1}{n}(1 + y)
+}
+\qquad\text{and}\qquad
+\boxed{
+\frac{\partial L}{\partial y} = \frac{1}{n}x
+}
+$$
+
+where the operations are understood element-wise.
+
+---
+
 In practice, EaZyGrad implements a VJP for each primitive operations (or computation nodes) : add, mul, matmul, exp, log etc. 
 
 ```python
@@ -519,9 +607,7 @@ class Mul(Operation):
         return (arr2 * grad_output, arr1 * grad_output)
 ```
 
-This code captures the core idea behind backpropagation in EaZyGrad.
-
-Every primitive operation is represented by a small `Operation` object with a single responsibility: given an incoming upstream gradient `grad_output`, compute the outgoing gradients for its inputs.
+Every primitive operation is represented by an `Operation` object with a single responsibility: given an incoming upstream gradient `grad_output`, compute the outgoing gradients for its inputs. 
 
 The constructor stores the **context** needed for the backward pass. For multiplication, this means keeping the original input arrays `arr1` and `arr2`, because the local derivatives depend on them:
 
@@ -531,7 +617,7 @@ $$
 \frac{\partial (x \odot y)}{\partial y} = x
 $$
 
-This is why the forward pass must save some data. Once the actual numerical result has been computed, we still need enough information to differentiate that operation later. That saved information is exactly what autograd frameworks call the **context**.
+This is why the forward pass must save some data. Once the actual numerical result has been computed, we still need enough information to differentiate that operation later. That saved information is exactly what autograd frameworks call the **context**. This same pattern repeats for every primitive in the library. Each operation stores just enough context during the forward pass, and later exposes a `backward(...)` method that computes the local VJP for that operation. It takes the upstream gradient stored in `result.acc_grad` and returns the VJP for each parent (recall {ref}`sec-backward`). The engine then accumulates those gradients and continues walking backward. More complex operation are interpreted as the composition of multiple primitive operations, such as the mean-squared error operation. In this case, it will chain multiple nodes (substraction $\to$ squarring $\to$ mean reduction), each with its own defined VJP. Side-note : instead of composing multiple nodes, one can always **fuse these operations** into a single node by defining the corresponding VJP. Reducing the number of function call can bring speed up at the cost of a more complex code-base.
 
 Notice also that saved NumPy arrays are marked as non-writeable:
 
@@ -541,56 +627,36 @@ ctx.flags.writeable = False
 
 This is a defensive measure. If the saved context were modified in-place after the forward pass, the backward formulas could silently use corrupted values and produce wrong gradients. By freezing the arrays, EaZyGrad protects the integrity of the recorded tape.
 
-The `Add` operation is almost trivial. Since
 
-$$
-\frac{\partial (x + y)}{\partial x} = 1
-\qquad\text{and}\qquad
-\frac{\partial (x + y)}{\partial y} = 1
-$$
-
-the upstream gradient is simply passed through to both inputs unchanged.
-
-The `Mul` operation is only slightly more interesting. It implements exactly the VJP we derived above:
-
-$$
-\operatorname{VJP}_{\text{mul}}(v, x, y) = (v \odot y,\; v \odot x)
-$$
-
-There is also a special case for scalar multiplication. If the forward computation was `x * c`, then:
-
-$$
-\frac{\partial (x c)}{\partial x} = c
-$$
-
-so the backward rule reduces to:
-
-$$
-\frac{\partial L}{\partial x} = c \cdot \frac{\partial L}{\partial (x c)}
-$$
-
-This same pattern repeats for every primitive in the library. Each operation stores just enough context during the forward pass, and later exposes a `backward(...)` method that computes the local VJP for that operation.
-
-That is exactly what each `operation.backward(...)` method in EaZyGrad computes . It takes the upstream gradient stored in `result.acc_grad` and returns the VJP for each parent (recall {ref}`sec-backward`). The engine then accumulates those gradients and continues walking backward.
-More complex operation are interpreted as the composition of multiple primitive operations, such as the mean-squared error operation. In this case, it will chain multiple nodes (substraction $\to$ squarring $\to$ mean reduction), each with its own defined VJP. Side-note : instead of composing multiple nodes, one can always **fuse these operations** into a single node by defining a custom VJP. Reducing the number of function call can bring speed up at the cost of a more complex code-base.
 
 ---
-
+(sec-tldr)=
 ## TL;DR summary in a nutshell for dummies
 
-There are two key takeaways here.
+Here is the whole story in plain English.
 
-First, the VJP is not a separate concept from the chain rule. It *is* the chain rule, written in a way that is efficient for vector-valued functions.
+During the forward pass, every tensor operation is recorded in a graph. Each node remembers what operation happened and what values are needed to differentiate it later.
 
-Second, we never build the Jacobian explicitly. We only use its structure to compute its effect on the incoming gradient.
+During the backward pass, we start from a scalar value, usually the loss, and move backward through that graph. At each node, we receive the the **upstream gradient**.
 
-A useful intuition to keep in mind is:
+To pass that information to the node’s inputs, we apply the **chain rule**. Mathematically, this local chain-rule step is a **vector-Jacobian product**
 
-> Each node receives a gradient from its children, applies the chain rule locally, and sends transformed gradients to its parents.
+The important trick is that we do **not** build the full Jacobian matrix. That would be too expensive and mostly useless. Instead, for each primitive operation, we directly code the formula for the resulting VJP.
 
----
+For example:
+- for addition, the gradient is copied to both inputs,
+- for multiplication, the gradient is multiplied by the opposite operand,
+- for more complex operations, we use their own specific backward rule.
 
-**The computation graph stores the structure of the function, and VJPs are how the chain rule is executed along that structure during backpropagation.**
+So in one sentence:
+
+> **Backpropagation is just the repeated application of local vector-Jacobian products while walking backward through the computation graph.**
+
+And in even simpler terms:
+
+> **Forward pass: compute values.  
+> Backward pass: replay the graph in reverse and distribute contributions using the chain rule.**
+
 
 ## Side note : Eager mode
 
@@ -598,4 +664,4 @@ EaZyGrad uses an **eager** execution model, which applies operations and builds 
 - it requires rebuilding the graph each time,
 - operations are executed as they occur, so no optimization can be done by reordering or fusing them,
 - and last but not least, it introduces a large Python overhead.
-This is why modern Auto-differentiation libraries such as JAX and Tinygrad use Just-in time (JIT) compilation where the graph is created once to trace the flow of computation, optimized by fusing ops or removing python overhead, and then reused for each backward/forward pass. Since Pytorch 2.0, it is possible to use torch.compile to JIT-compile pytorch code. 
+This is why modern Auto-differentiation libraries such as JAX and Tinygrad use Just-in time (JIT) compilation where the graph is created once to trace the flow of computation, optimized by fusing ops or removing python overhead, and then reused for each backward/forward pass. Since Pytorch 2.0, it is also possible to use torch.compile to JIT-compile pytorch code. 
